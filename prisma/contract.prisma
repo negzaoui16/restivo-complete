@@ -1,0 +1,874 @@
+// use prisma-8
+
+//
+// --------------------------------------------------------------------------
+// ENUMS
+// --------------------------------------------------------------------------
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum RestaurantStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MembershipRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+enum MembershipRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+enum FloorObjectType {
+  TABLE
+  CHAIR
+  BAR
+  WALL
+  DOOR
+  WINDOW
+  SOFA
+  COUNTER
+  DECORATION
+  OTHER
+}
+
+enum TableType {
+  STANDARD
+  BOOTH
+  BAR
+  OUTDOOR
+  PRIVATE
+  OTHER
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  SEATED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+enum NotificationType {
+  RESERVATION
+  ORDER
+  STAFF_REQUEST
+  REVIEW
+  SYSTEM
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  OTHER
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  ACCEPT
+  DECLINE
+  CANCEL
+  CONFIRM
+  STATUS_CHANGE
+}
+
+//
+// --------------------------------------------------------------------------
+// USER
+// --------------------------------------------------------------------------
+model User {
+  id                 String                        @id @default(ulid())
+  email              String                        @unique
+  passwordHash       String
+  emailVerifiedAt    DateTime?
+  status             UserStatus                    @default(ACTIVE)
+  /// OWNER when they signed up as Owner/Manager. MANAGER is usually granted via membership.
+  managementRole     MembershipRole?
+
+  profile            Profile?
+
+  ownedRestaurants   Restaurant[]                  @relation("RestaurantOwner")
+
+  memberships        RestaurantMembership[]
+
+  membershipRequests RestaurantMembershipRequest[] @relation("MembershipRequestUser")
+
+  reviewedRequests   RestaurantMembershipRequest[] @relation("RequestReviewer")
+
+  reservations       Reservation[]                 @relation("CustomerReservations")
+
+  orders             Order[]                       @relation("CustomerOrders")
+
+  reviews            Review[]                      @relation("CustomerReviews")
+
+  favorites          Favorite[]
+
+  notifications      Notification[]
+
+  media              Media[]
+
+  auditLogs          AuditLog[]
+
+  createdAt          DateTime                      @default(now())
+  updatedAt          temporal.updatedAtString()
+
+  @@index([status])
+  @@index([managementRole])
+}
+
+//
+// --------------------------------------------------------------------------
+// PROFILE
+// --------------------------------------------------------------------------
+model Profile {
+  id          String   @id @default(ulid())
+  userId      String   @unique
+
+  firstName   String?
+  lastName    String?
+  displayName String?
+  avatarUrl   String?
+  phone       String?
+  bio         String?
+
+  user        User     @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   temporal.updatedAtString()
+}
+
+//
+// --------------------------------------------------------------------------
+// RESTAURANT
+// --------------------------------------------------------------------------
+model Restaurant {
+  id                 String                        @id @default(ulid())
+
+  ownerId            String
+
+  owner              User                          @relation("RestaurantOwner", fields:[ownerId], references:[id], onDelete: Restrict)
+
+  name               String
+  slug               String                        @unique
+  description        String?
+
+  logoUrl            String?
+  coverUrl           String?
+
+  // Free text (suggestions in the UI), e.g. "Tunisian", "Italian".
+  cuisine            String?
+
+  // 1 = cheap ... 4 = expensive. Shown as currency symbols.
+  priceLevel         Int?
+
+  phone              String?
+  email              String?
+  website            String?
+
+  address            String?
+  city               String?
+  country            String?
+  postalCode         String?
+
+  latitude           Decimal?                      
+  longitude          Decimal?                      
+
+  currency           String                        @default("TND")
+  timezone           String                        @default("UTC")
+
+  status             RestaurantStatus              @default(DRAFT)
+
+  memberships        RestaurantMembership[]
+
+  membershipRequests RestaurantMembershipRequest[]
+
+  businessHours      BusinessHours[]
+
+  floors             Floor[]
+
+  menus              Menu[]
+
+  promotions         Promotion[]
+
+  reservations       Reservation[]
+
+  orders             Order[]
+
+  reviews            Review[]
+
+  favorites          Favorite[]
+
+  notifications      Notification[]
+
+  media              Media[]
+
+  auditLogs          AuditLog[]
+
+  createdAt          DateTime                      @default(now())
+  updatedAt          temporal.updatedAtString()
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([city])
+  @@index([country])
+  @@check(expression: "\"priceLevel\" IS NULL OR \"priceLevel\" BETWEEN 1 AND 4", name: "price_level_range")
+}
+
+//
+// --------------------------------------------------------------------------
+// RESTAURANT MEMBERSHIP
+// --------------------------------------------------------------------------
+model RestaurantMembership {
+  id           String           @id @default(ulid())
+
+  userId       String
+  restaurantId String
+
+  role         MembershipRole
+  status       MembershipStatus @default(PENDING)
+
+  joinedAt     DateTime?
+
+  user         User             @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  restaurant   Restaurant       @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  createdAt    DateTime         @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId, role])
+  @@index([restaurantId, status])
+  @@index([userId, status])
+}
+
+//
+// --------------------------------------------------------------------------
+// STAFF JOIN REQUEST
+// --------------------------------------------------------------------------
+model RestaurantMembershipRequest {
+  id           String                  @id @default(ulid())
+
+  userId       String
+  restaurantId String
+
+  status       MembershipRequestStatus @default(PENDING)
+
+  message      String?
+
+  reviewedById String?
+  reviewedAt   DateTime?
+
+  user         User                    @relation("MembershipRequestUser", fields:[userId], references:[id], onDelete: Cascade)
+
+  restaurant   Restaurant              @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  reviewedBy   User?                   @relation("RequestReviewer", fields:[reviewedById], references:[id], onDelete: SetNull)
+
+  createdAt    DateTime                @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@index([restaurantId, status])
+  @@index([userId, status])
+}
+
+//
+// --------------------------------------------------------------------------
+// BUSINESS HOURS
+// --------------------------------------------------------------------------
+model BusinessHours {
+  id           String     @id @default(ulid())
+
+  restaurantId String
+
+  //
+  // 0 = Sunday
+  // 1 = Monday
+  // ...
+  // 6 = Saturday
+  dayOfWeek    Int
+
+  isClosed     Boolean    @default(false)
+
+  openTime     String?
+  closeTime    String?
+
+  restaurant   Restaurant @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  createdAt    DateTime   @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@unique([restaurantId, dayOfWeek])
+  @@index([restaurantId])
+}
+
+//
+// --------------------------------------------------------------------------
+// FLOOR
+// --------------------------------------------------------------------------
+model Floor {
+  id                 String        @id @default(ulid())
+
+  restaurantId       String
+
+  name               String
+  level              Int           @default(0)
+
+  width              Decimal       
+  height             Decimal       
+
+  backgroundImageUrl String?
+
+  sortOrder          Int           @default(0)
+  isActive           Boolean       @default(true)
+
+  restaurant         Restaurant    @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  tables             Table[]
+
+  objects            FloorObject[]
+
+  createdAt          DateTime      @default(now())
+  updatedAt          temporal.updatedAtString()
+
+  @@index([restaurantId, sortOrder])
+}
+
+//
+// --------------------------------------------------------------------------
+// TABLE
+// --------------------------------------------------------------------------
+model Table {
+  id           String        @id @default(ulid())
+
+  floorId      String
+
+  name         String
+  number       Int?
+
+  type         TableType     @default(STANDARD)
+
+  capacity     Int
+  minCapacity  Int?
+
+  //
+  // 2D editor coordinates.
+  x            Decimal       
+  y            Decimal       
+
+  width        Decimal       
+  height       Decimal       
+
+  rotation     Decimal       @default(0)
+
+  isActive     Boolean       @default(true)
+
+  floor        Floor         @relation(fields:[floorId], references:[id], onDelete: Cascade)
+
+  reservations Reservation[]
+
+  orders       Order[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@unique([floorId, name])
+  @@index([floorId])
+  @@index([floorId, isActive])
+}
+
+//
+// --------------------------------------------------------------------------
+// FLOOR OBJECT
+// --------------------------------------------------------------------------
+//
+// Generic spatial objects:
+//
+// CHAIR
+// WALL
+// DOOR
+// WINDOW
+// BAR
+// SOFA
+// COUNTER
+// DECORATION
+//
+// Tables remain a dedicated model because reservations reference them.
+// --------------------------------------------------------------------------
+model FloorObject {
+  id        String          @id @default(ulid())
+
+  floorId   String
+
+  type      FloorObjectType
+
+  name      String?
+
+  x         Decimal         
+  y         Decimal         
+
+  width     Decimal         
+  height    Decimal         
+
+  rotation  Decimal         @default(0)
+
+  scaleX    Decimal         @default(1)
+  scaleY    Decimal         @default(1)
+
+  zIndex    Int             @default(0)
+
+  isVisible Boolean         @default(true)
+
+  //
+  // Flexible data for future 3D rendering.
+  data      Json?
+
+  floor     Floor           @relation(fields:[floorId], references:[id], onDelete: Cascade)
+
+  createdAt DateTime        @default(now())
+  updatedAt temporal.updatedAtString()
+
+  @@index([floorId, zIndex])
+}
+
+//
+// --------------------------------------------------------------------------
+// MENU
+// --------------------------------------------------------------------------
+model Menu {
+  id           String         @id @default(ulid())
+
+  restaurantId String
+
+  name         String
+  description  String?
+
+  isPublished  Boolean        @default(false)
+
+  restaurant   Restaurant     @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  categories   MenuCategory[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@index([restaurantId])
+  @@index([restaurantId, isPublished])
+}
+
+//
+// --------------------------------------------------------------------------
+// MENU CATEGORY
+// --------------------------------------------------------------------------
+model MenuCategory {
+  id          String     @id @default(ulid())
+
+  menuId      String
+
+  name        String
+  description String?
+  imageUrl    String?
+
+  sortOrder   Int        @default(0)
+
+  isActive    Boolean    @default(true)
+
+  menu        Menu       @relation(fields:[menuId], references:[id], onDelete: Cascade)
+
+  items       MenuItem[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  @@index([menuId, sortOrder])
+}
+
+//
+// --------------------------------------------------------------------------
+// MENU ITEM
+// --------------------------------------------------------------------------
+model MenuItem {
+  id              String          @id @default(ulid())
+
+  categoryId      String
+
+  name            String
+  description     String?
+
+  imageUrl        String?
+  model3dUrl      String?
+
+  price           Decimal         
+
+  preparationTime Int?
+
+  isAvailable     Boolean         @default(true)
+  isFeatured      Boolean         @default(false)
+
+  sortOrder       Int             @default(0)
+
+  category        MenuCategory    @relation(fields:[categoryId], references:[id], onDelete: Cascade)
+
+  promotionItems  PromotionItem[]
+
+  orderItems      OrderItem[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  @@index([categoryId, sortOrder])
+  @@index([categoryId, isAvailable])
+}
+
+//
+// --------------------------------------------------------------------------
+// PROMOTION
+// --------------------------------------------------------------------------
+model Promotion {
+  id           String          @id @default(ulid())
+
+  restaurantId String
+
+  name         String
+  description  String?
+
+  type         PromotionType
+
+  value        Decimal         
+
+  startsAt     DateTime
+  endsAt       DateTime
+
+  isActive     Boolean         @default(true)
+
+  restaurant   Restaurant      @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  items        PromotionItem[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@index([restaurantId, isActive])
+  @@index([startsAt, endsAt])
+}
+
+//
+// --------------------------------------------------------------------------
+// PROMOTION ITEMS
+// --------------------------------------------------------------------------
+model PromotionItem {
+  promotionId String
+  menuItemId  String
+
+  promotion   Promotion @relation(fields:[promotionId], references:[id], onDelete: Cascade)
+
+  menuItem    MenuItem  @relation(fields:[menuItemId], references:[id], onDelete: Cascade)
+
+  @@id([promotionId, menuItemId])
+}
+
+//
+// --------------------------------------------------------------------------
+// RESERVATION
+// --------------------------------------------------------------------------
+model Reservation {
+  id              String            @id @default(ulid())
+
+  reservationCode String            @unique
+
+  restaurantId    String
+  customerId      String
+  tableId         String
+
+  //
+  // Stored as UTC.
+  // Restaurant.timezone is used when displaying it.
+  startsAt        DateTime
+  endsAt          DateTime
+
+  guestCount      Int
+
+  status          ReservationStatus @default(PENDING)
+
+  notes           String?
+
+  restaurant      Restaurant        @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  customer        User              @relation("CustomerReservations", fields:[customerId], references:[id], onDelete: Restrict)
+
+  table           Table             @relation(fields:[tableId], references:[id], onDelete: Restrict)
+
+  orders          Order[]
+
+  review          Review?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  @@index([restaurantId, startsAt])
+  @@index([restaurantId, status])
+  @@index([customerId, startsAt])
+  @@index([tableId, startsAt])
+}
+
+//
+// --------------------------------------------------------------------------
+// ORDER
+// --------------------------------------------------------------------------
+model Order {
+  id            String       @id @default(ulid())
+
+  restaurantId  String
+  customerId    String
+
+  //
+  // Optional because later we may support walk-in orders.
+  reservationId String?
+  tableId       String?
+
+  status        OrderStatus  @default(PENDING)
+
+  notes         String?
+
+  subtotal      Decimal      
+  discount      Decimal      @default(0)
+  total         Decimal      
+
+  restaurant    Restaurant   @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  customer      User         @relation("CustomerOrders", fields:[customerId], references:[id], onDelete: Restrict)
+
+  reservation   Reservation? @relation(fields:[reservationId], references:[id], onDelete: SetNull)
+
+  table         Table?       @relation(fields:[tableId], references:[id], onDelete: SetNull)
+
+  items         OrderItem[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  @@index([restaurantId, createdAt])
+  @@index([restaurantId, status])
+  @@index([customerId, createdAt])
+  @@index([reservationId])
+  @@index([tableId])
+}
+
+//
+// --------------------------------------------------------------------------
+// ORDER ITEM
+// --------------------------------------------------------------------------
+model OrderItem {
+  id            String    @id @default(ulid())
+
+  orderId       String
+  menuItemId    String?
+
+  //
+  // Historical snapshot.
+  // Menu changes must not modify previous orders.
+  nameSnapshot  String
+  priceSnapshot Decimal   
+
+  quantity      Int
+
+  notes         String?
+
+  order         Order     @relation(fields:[orderId], references:[id], onDelete: Cascade)
+
+  menuItem      MenuItem? @relation(fields:[menuItemId], references:[id], onDelete: SetNull)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  @@index([orderId])
+  @@index([menuItemId])
+}
+
+//
+// --------------------------------------------------------------------------
+// REVIEW
+// --------------------------------------------------------------------------
+model Review {
+  id            String       @id @default(ulid())
+
+  customerId    String
+  restaurantId  String
+
+  //
+  // One review per completed reservation.
+  reservationId String       @unique
+
+  rating        Int
+
+  comment       String?
+
+  status        ReviewStatus @default(PENDING)
+
+  customer      User         @relation("CustomerReviews", fields:[customerId], references:[id], onDelete: Restrict)
+
+  restaurant    Restaurant   @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  reservation   Reservation  @relation(fields:[reservationId], references:[id], onDelete: Restrict)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  @@index([restaurantId, status])
+  @@index([customerId])
+}
+
+//
+// --------------------------------------------------------------------------
+// FAVORITE
+// --------------------------------------------------------------------------
+model Favorite {
+  id           String     @id @default(ulid())
+
+  userId       String
+  restaurantId String
+
+  user         User       @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  restaurant   Restaurant @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  createdAt    DateTime   @default(now())
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId])
+}
+
+//
+// --------------------------------------------------------------------------
+// NOTIFICATION
+// --------------------------------------------------------------------------
+model Notification {
+  id           String           @id @default(ulid())
+
+  userId       String
+  restaurantId String?
+
+  type         NotificationType
+
+  title        String
+  message      String
+
+  data         Json?
+
+  readAt       DateTime?
+  expiresAt    DateTime?
+
+  user         User             @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  restaurant   Restaurant?      @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  createdAt    DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([restaurantId, createdAt])
+}
+
+//
+// --------------------------------------------------------------------------
+// MEDIA
+// --------------------------------------------------------------------------
+//
+// Actual files live in object storage.
+// PostgreSQL stores metadata only.
+// --------------------------------------------------------------------------
+model Media {
+  id           String      @id @default(ulid())
+
+  ownerId      String
+  restaurantId String?
+
+  url          String
+  storageKey   String
+
+  type         MediaType
+  mimeType     String
+
+  size         Int?
+  width        Int?
+  height       Int?
+
+  owner        User        @relation(fields:[ownerId], references:[id], onDelete: Cascade)
+
+  restaurant   Restaurant? @relation(fields:[restaurantId], references:[id], onDelete: Cascade)
+
+  createdAt    DateTime    @default(now())
+
+  @@index([ownerId])
+  @@index([restaurantId])
+}
+
+//
+// --------------------------------------------------------------------------
+// AUDIT LOG
+// --------------------------------------------------------------------------
+model AuditLog {
+  id           String      @id @default(ulid())
+
+  userId       String?
+  restaurantId String?
+
+  action       AuditAction
+
+  entityType   String
+  entityId     String?
+
+  metadata     Json?
+
+  user         User?       @relation(fields:[userId], references:[id], onDelete: SetNull)
+
+  restaurant   Restaurant? @relation(fields:[restaurantId], references:[id], onDelete: SetNull)
+
+  createdAt    DateTime    @default(now())
+
+  @@index([restaurantId, createdAt])
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}

@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FAF7F2;
+  --foreground: #1A1A1A;
+  --brand-clay: #B55234;
+  --brand-clay-hover: #9E4328;
+  --brand-olive: #6B7F5B;
+  --brand-ivory: #F8F6EF;
+  --brand-charcoal: #1A1A1A;
+  --brand-muted: #6B6661;
+  --brand-border: #E8E4DA;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-clay: var(--brand-clay);
+  --color-brand-olive: var(--brand-olive);
+  --color-brand-ivory: var(--brand-ivory);
+  --color-brand-charcoal: var(--brand-charcoal);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-border: var(--brand-border);
+}
+
+html, body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100%;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Disable elastic/rubber-band overscroll on macOS, iOS and Android */
+  overscroll-behavior: none;
+}
+
+/* Custom smooth transitions and animations */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.animate-float {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+

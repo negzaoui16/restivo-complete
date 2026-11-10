@@ -1,0 +1,125 @@
+[
+  {
+    "id": "column.public.User.managementRole",
+    "label": "Add column \"managementRole\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "managementRole",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"managementRole\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "managementRole"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"managementRole\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"managementRole\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"managementRole\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "managementRole"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.User.User_managementRole_check_4a97af3b",
+    "label": "Add check constraint \"User_managementRole_check_4a97af3b\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "User_managementRole_check_4a97af3b",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"User_managementRole_check_4a97af3b\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_managementRole_check_4a97af3b",
+          "public",
+          "\"public\".\"User\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"User_managementRole_check_4a97af3b\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD CONSTRAINT \"User_managementRole_check_4a97af3b\" CHECK (\"managementRole\" IN ('OWNER', 'MANAGER', 'STAFF'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"User_managementRole_check_4a97af3b\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_managementRole_check_4a97af3b",
+          "public",
+          "\"public\".\"User\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_managementRole_idx_5c6a53b9",
+    "label": "Create index \"User_managementRole_idx_5c6a53b9\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_managementRole_idx_5c6a53b9",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_managementRole_idx_5c6a53b9\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_managementRole_idx_5c6a53b9\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_managementRole_idx_5c6a53b9\"",
+        "sql": "CREATE INDEX \"User_managementRole_idx_5c6a53b9\" ON \"public\".\"User\" (\"managementRole\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_managementRole_idx_5c6a53b9\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_managementRole_idx_5c6a53b9\""
+        ]
+      }
+    ]
+  }
+]

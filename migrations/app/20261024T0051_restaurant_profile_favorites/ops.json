@@ -1,0 +1,413 @@
+[
+  {
+    "id": "table.Favorite",
+    "label": "Create table \"Favorite\"",
+    "summary": "Creates table \"Favorite\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Favorite"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Favorite\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Favorite\"",
+        "sql": "CREATE TABLE \"public\".\"Favorite\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"restaurantId\" text NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Favorite\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Restaurant.cuisine",
+    "label": "Add column \"cuisine\" to \"Restaurant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "cuisine",
+        "table": "Restaurant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"cuisine\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Restaurant",
+          "cuisine"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"cuisine\"",
+        "sql": "ALTER TABLE \"public\".\"Restaurant\" ADD COLUMN \"cuisine\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"cuisine\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Restaurant",
+          "cuisine"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Restaurant.priceLevel",
+    "label": "Add column \"priceLevel\" to \"Restaurant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "priceLevel",
+        "table": "Restaurant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"priceLevel\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Restaurant",
+          "priceLevel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"priceLevel\"",
+        "sql": "ALTER TABLE \"public\".\"Restaurant\" ADD COLUMN \"priceLevel\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"priceLevel\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Restaurant",
+          "priceLevel"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.Restaurant.currency",
+    "label": "Set default on \"Restaurant\".\"currency\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "currency",
+        "table": "Restaurant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"currency\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Restaurant",
+          "currency"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"currency\"",
+        "sql": "ALTER TABLE \"public\".\"Restaurant\" ALTER COLUMN \"currency\" SET DEFAULT 'TND'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify the default of \"currency\" is TND",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" LIKE '%TND%')) AS \"result\"",
+        "params": [
+          "public",
+          "Restaurant",
+          "currency"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.Favorite.Favorite_userId_restaurantId_key",
+    "label": "Add unique constraint on \"Favorite\" (userId, restaurantId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Favorite_userId_restaurantId_key",
+        "table": "Favorite"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Favorite_userId_restaurantId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Favorite_userId_restaurantId_key",
+          "public",
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"Favorite_userId_restaurantId_key\"",
+        "sql": "ALTER TABLE \"public\".\"Favorite\" ADD CONSTRAINT \"Favorite_userId_restaurantId_key\" UNIQUE (\"userId\", \"restaurantId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Favorite_userId_restaurantId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Favorite_userId_restaurantId_key",
+          "public",
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Restaurant.price_level_range_6639a0cb",
+    "label": "Add check constraint \"price_level_range_6639a0cb\" on \"Restaurant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "price_level_range_6639a0cb",
+        "table": "Restaurant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"price_level_range_6639a0cb\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "price_level_range_6639a0cb",
+          "public",
+          "\"public\".\"Restaurant\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"price_level_range_6639a0cb\"",
+        "sql": "ALTER TABLE \"public\".\"Restaurant\" ADD CONSTRAINT \"price_level_range_6639a0cb\" CHECK (\"priceLevel\" IS NULL OR \"priceLevel\" BETWEEN 1 AND 4)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"price_level_range_6639a0cb\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "price_level_range_6639a0cb",
+          "public",
+          "\"public\".\"Restaurant\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Favorite.Favorite_restaurantId_idx_cf3ee7d0",
+    "label": "Create index \"Favorite_restaurantId_idx_cf3ee7d0\" on \"Favorite\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Favorite_restaurantId_idx_cf3ee7d0",
+        "table": "Favorite"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Favorite_restaurantId_idx_cf3ee7d0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Favorite_restaurantId_idx_cf3ee7d0\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Favorite_restaurantId_idx_cf3ee7d0\"",
+        "sql": "CREATE INDEX \"Favorite_restaurantId_idx_cf3ee7d0\" ON \"public\".\"Favorite\" (\"restaurantId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Favorite_restaurantId_idx_cf3ee7d0\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Favorite_restaurantId_idx_cf3ee7d0\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Favorite.Favorite_userId_idx_a489d58a",
+    "label": "Create index \"Favorite_userId_idx_a489d58a\" on \"Favorite\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Favorite_userId_idx_a489d58a",
+        "table": "Favorite"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Favorite_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Favorite_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Favorite_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"Favorite_userId_idx_a489d58a\" ON \"public\".\"Favorite\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Favorite_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Favorite_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Favorite.Favorite_userId_fkey",
+    "label": "Add foreign key \"Favorite_userId_fkey\" on \"Favorite\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Favorite_userId_fkey",
+        "table": "Favorite"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Favorite_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Favorite_userId_fkey",
+          "public",
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Favorite_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Favorite\"\nADD CONSTRAINT \"Favorite_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Favorite_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Favorite_userId_fkey",
+          "public",
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Favorite.Favorite_restaurantId_fkey",
+    "label": "Add foreign key \"Favorite_restaurantId_fkey\" on \"Favorite\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Favorite_restaurantId_fkey",
+        "table": "Favorite"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Favorite_restaurantId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Favorite_restaurantId_fkey",
+          "public",
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Favorite_restaurantId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Favorite\"\nADD CONSTRAINT \"Favorite_restaurantId_fkey\"\nFOREIGN KEY (\"restaurantId\")\nREFERENCES \"public\".\"Restaurant\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Favorite_restaurantId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Favorite_restaurantId_fkey",
+          "public",
+          "\"public\".\"Favorite\""
+        ]
+      }
+    ]
+  }
+]

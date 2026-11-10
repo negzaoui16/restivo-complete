@@ -1,0 +1,48 @@
+{
+  "name": "restivo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "dev:https": "next dev --webpack --experimental-https --experimental-https-key certificates/server.key --experimental-https-cert certificates/server.crt -H 0.0.0.0 -p 3000",
+    "tunnel": "..\\..\\cloudflared.exe tunnel --url http://localhost:3000",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test lib/ai/tools/registry.test.ts lib/ai/tools/reservations/tools.test.ts lib/ai/follow-ups.test.ts lib/auth/token-expiry.test.ts lib/restaurants/publish.test.ts lib/discover/search.test.ts lib/reservations/rules.test.ts lib/orders/pricing.test.ts lib/menu-book/paginate.test.ts lib/orders/price-input.test.ts lib/menu/reorder.test.ts lib/reservations/transitions.test.ts lib/orders/transitions.test.ts lib/reservations/stats.test.ts lib/restaurants/hours.test.ts lib/floors/active.test.ts lib/staff/roles.test.ts lib/restaurants/price-level.test.ts lib/live/state.test.ts lib/live/alerts.test.ts lib/staff/service-rules.test.ts lib/reservations/service.integration.test.ts lib/manager/manager.integration.test.ts lib/restaurants/restaurant.integration.test.ts lib/staff/board.integration.test.ts lib/live/live.integration.test.ts",
+    "test:integration": "node --env-file=.env --experimental-strip-types --test lib/reservations/service.integration.test.ts lib/manager/manager.integration.test.ts lib/restaurants/restaurant.integration.test.ts lib/staff/board.integration.test.ts lib/live/live.integration.test.ts",
+    "postinstall": "prisma skills sync || exit 0"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.10.0",
+    "@prisma/orm-postgres": "^8.0.0-rc.12",
+    "@serwist/next": "^9.5.12",
+    "@types/three": "^0.186.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.6",
+    "jose": "^6.2.12",
+    "lucide-react": "^1.48.0",
+    "ml-regression": "^6.3.0",
+    "mongoose": "^9.11.4",
+    "next": "16.3.6",
+    "prisma": "^8.0.0-rc.17",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "simple-statistics": "^8.0.0",
+    "temporal-polyfill": "^1.0.5",
+    "three": "^0.186.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "serwist": "^9.5.12",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
