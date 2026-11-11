@@ -47,6 +47,9 @@ export type FloorEditorApi = {
   applyPerimeterWalls: (perimeterObjects: FloorObject[], replaceExisting?: boolean) => void;
   perimeterModalOpen: boolean;
   setPerimeterModalOpen: (open: boolean) => void;
+  applyAiLayout: (newObjects: FloorObject[], mode?: "replace" | "merge") => void;
+  aiModalOpen: boolean;
+  setAiModalOpen: (open: boolean) => void;
 };
 
 export function useFloorEditor(options: {
@@ -67,6 +70,7 @@ export function useFloorEditor(options: {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [preview, setPreview] = useState(false);
   const [perimeterModalOpen, setPerimeterModalOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -94,6 +98,19 @@ export function useFloorEditor(options: {
       setSelectedId(null);
     },
     [commit, height, objects, width],
+  );
+
+  const applyAiLayout = useCallback(
+    (newObjects: FloorObject[], mode: "replace" | "merge" = "replace") => {
+      if (mode === "replace") {
+        commit(newObjects);
+      } else {
+        commit([...objects, ...newObjects]);
+      }
+      setSelectedId(null);
+      setNotice(`AI layout applied: ${newObjects.length} items`);
+    },
+    [commit, objects],
   );
 
   const undo = useCallback(() => {
@@ -279,6 +296,9 @@ export function useFloorEditor(options: {
     applyPerimeterWalls,
     perimeterModalOpen,
     setPerimeterModalOpen,
+    applyAiLayout,
+    aiModalOpen,
+    setAiModalOpen,
   };
 }
 

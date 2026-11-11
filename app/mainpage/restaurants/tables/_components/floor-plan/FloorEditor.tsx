@@ -8,15 +8,18 @@ import { FloorCanvas3D } from "./FloorCanvas3D";
 import { FloorToolbar } from "./FloorToolbar";
 import { ObjectLibrary } from "./ObjectLibrary";
 import { PerimeterWallsModal } from "./PerimeterWallsModal";
+import { AiFloorGeneratorModal } from "./AiFloorGeneratorModal";
 import { PropertiesPanel } from "./PropertiesPanel";
 
 export function FloorEditor({
+  restaurantId,
   width,
   height,
   objects,
   onSave,
   onPublish,
 }: {
+  restaurantId?: string;
   width: number;
   height: number;
   objects: FloorObject[];
@@ -27,12 +30,12 @@ export function FloorEditor({
 
   return (
     <FloorEditorProvider value={editor}>
-      <FloorEditorContent />
+      <FloorEditorContent restaurantId={restaurantId} />
     </FloorEditorProvider>
   );
 }
 
-function FloorEditorContent() {
+function FloorEditorContent({ restaurantId }: { restaurantId?: string }) {
   const editor = useFloorEditorContext();
 
   return (
@@ -53,6 +56,19 @@ function FloorEditorContent() {
             editor.setPerimeterModalOpen(false);
           }}
           onClose={() => editor.setPerimeterModalOpen(false)}
+        />
+      ) : null}
+
+      {editor.aiModalOpen ? (
+        <AiFloorGeneratorModal
+          restaurantId={restaurantId || ""}
+          floorWidth={editor.width}
+          floorHeight={editor.height}
+          onApply={(newObjects, mode) => {
+            editor.applyAiLayout(newObjects, mode);
+            editor.setAiModalOpen(false);
+          }}
+          onClose={() => editor.setAiModalOpen(false)}
         />
       ) : null}
     </section>

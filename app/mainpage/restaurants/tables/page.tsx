@@ -80,6 +80,7 @@ export default function TablesAndFloorsPage() {
         <div className="h-[760px]">
           <FloorEditor
             key={floor.id}
+            restaurantId={currentRestaurant.id}
             width={floor.width}
             height={floor.height}
             objects={floor.objects}

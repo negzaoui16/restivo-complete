@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Box, Building2, Layers, Minus, Plus, Redo2, Undo2 } from "lucide-react";
+import { Box, Building2, Layers, Minus, Plus, Redo2, Sparkles, Undo2 } from "lucide-react";
 import { useFloorEditorContext } from "./editor/context";
 
 export function FloorToolbar() {
@@ -64,6 +64,18 @@ export function FloorToolbar() {
       >
         <Building2 className="h-4 w-4 text-[#B55234]" />
         Room Walls
+      </button>
+
+      {/* AI Floor Plan Generator (Dual Photos) */}
+      <button
+        type="button"
+        disabled={editor.preview}
+        onClick={() => editor.setAiModalOpen(true)}
+        className="flex items-center gap-1.5 rounded-lg border border-[#B55234]/40 bg-gradient-to-r from-[#FAF0EA] to-[#FDF5F0] px-2.5 py-1.5 text-[13px] font-bold text-[#B55234] hover:border-[#B55234] hover:shadow-xs hover:bg-[#FAF0EA] transition disabled:opacity-40"
+        title="Generate 2D floor plan from front & back photos using Gemini Vision"
+      >
+        <Sparkles className="h-4 w-4 text-[#B55234] animate-pulse" />
+        Generate with AI
       </button>
       <span className="mx-1 h-6 w-px bg-[#E5DFD3]" />
 
