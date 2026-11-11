@@ -34,8 +34,8 @@ export async function connectMongo(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 500,
-      connectTimeoutMS: 500,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
     };
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => {
       cached.conn = m;
@@ -51,6 +51,7 @@ export async function connectMongo(): Promise<typeof mongoose> {
     cached.promise = null;
     cached.status = "disconnected";
     cached.lastCheck = Date.now();
+    console.error("[MongoDB] Connection error:", e);
     throw e;
   }
 
@@ -64,9 +65,8 @@ export async function isMongoConnected(): Promise<boolean> {
     return true;
   }
 
-  // If Atlas is unreachable or IP-blocked, don't stall user requests with timeouts!
-  // Remember disconnected state for 10 minutes before retrying in background.
-  if (cached.status === "disconnected" && Date.now() - (cached.lastCheck || 0) < 600000) {
+  // Si Mongo est déconnecté, attendre 5 secondes avant de réessayer
+  if (cached.status === "disconnected" && Date.now() - (cached.lastCheck || 0) < 5000) {
     return false;
   }
 
@@ -118,7 +118,11 @@ function saveJsonTable(tableName: string, rows: any[]): void {
     const stat = fs.statSync(DB_JSON_PATH);
     cachedDbJson = { mtime: stat.mtimeMs, data: current };
   } catch (e) {
-    console.error("Failed to save to db.json:", e);
+    // In-memory fallback if filesystem is read-only (Vercel)
+    if (!cachedDbJson) {
+      cachedDbJson = { mtime: Date.now(), data: loadDbJson() };
+    }
+    cachedDbJson.data[tableName] = rows;
   }
 }
 
@@ -243,8 +247,10 @@ export class ModelAdapter<T = any> {
         const obj = created.toObject ? created.toObject() : created;
         return serializeDoc<T>(obj);
       } catch (e) {
-        // Fallback to JSON
+        console.error(`[ModelAdapter: ${this.tableName}] Mongo create error:`, e);
       }
+    } else {
+      console.warn(`[ModelAdapter: ${this.tableName}] Mongo not connected during create.`);
     }
 
     const rows = getJsonTable(this.tableName);

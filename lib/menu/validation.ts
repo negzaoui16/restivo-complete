@@ -9,6 +9,13 @@ const optionalText = (max: number) =>
     .optional()
     .transform((value) => (value && value.length > 0 ? value : undefined));
 
+const optionalUrl = () =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined));
+
 export const createMenuSchema = z.object({
   name: z.string().trim().min(2).max(80).default("Main menu"),
   description: optionalText(400),
@@ -32,13 +39,13 @@ export const reorderSchema = z.object({
 export const createCategorySchema = z.object({
   name: z.string().trim().min(2, "Category name is required.").max(60),
   description: optionalText(240),
-  imageUrl: optionalText(400),
+  imageUrl: optionalUrl(),
 });
 
 export const updateCategorySchema = z.object({
   name: z.string().trim().min(2).max(60).optional(),
   description: optionalText(240),
-  imageUrl: optionalText(400),
+  imageUrl: optionalUrl(),
   isActive: z.boolean().optional(),
 });
 
@@ -46,8 +53,8 @@ export const createItemSchema = z.object({
   categoryId: z.string().min(1, "Choose a category."),
   name: z.string().trim().min(2, "Item name is required.").max(80),
   description: optionalText(600),
-  imageUrl: optionalText(400),
-  model3dUrl: optionalText(500),
+  imageUrl: optionalUrl(),
+  model3dUrl: optionalUrl(),
   price: priceInput,
   preparationTime: z.number().int().min(0).max(240).optional(),
   isAvailable: z.boolean().optional(),
@@ -58,8 +65,13 @@ export const updateItemSchema = z.object({
   categoryId: z.string().min(1).optional(),
   name: z.string().trim().min(2).max(80).optional(),
   description: optionalText(600),
-  imageUrl: optionalText(400),
-  model3dUrl: optionalText(500).nullable(),
+  imageUrl: optionalUrl(),
+  model3dUrl: z
+    .string()
+    .trim()
+    .nullable()
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
   price: priceInput.optional(),
   preparationTime: z.number().int().min(0).max(240).nullable().optional(),
   isAvailable: z.boolean().optional(),

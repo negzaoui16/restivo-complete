@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, X, Sparkles, Box, Loader2, Upload, WifiOff, Ruler, Wand2, Lightbulb } from "lucide-react";
+import { Check, ChevronDown, X, Sparkles, Box, Loader2, Upload, WifiOff, Ruler, Wand2, Lightbulb, AlertCircle } from "lucide-react";
 import type { PublicMenuCategory, PublicMenuItem } from "@/lib/menu/types";
 import {
   AVAILABLE_MENU_TAGS,
@@ -145,6 +145,7 @@ export function AddMenuItemPanel({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [generating3D, setGenerating3D] = useState(false); // Indicateur de chargement pour Trellis AI
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const { isOnline } = useNetworkStatus();
 
   // --- ÉTATS ASSISTANT CHEF IA RESTIVO ---
@@ -222,6 +223,23 @@ export function AddMenuItemPanel({
    * Enregistre le plat final avec ses métadonnées, photo et modèle 3D
    */
   async function handleSave() {
+    setLocalError(null);
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setLocalError("Veuillez saisir le nom du plat.");
+      return;
+    }
+    if (!categoryId) {
+      setLocalError("Veuillez choisir une catégorie.");
+      return;
+    }
+    const cleanPrice = String(price).trim();
+    if (!cleanPrice) {
+      setLocalError("Veuillez indiquer un prix valide (ex: 12.500).");
+      return;
+    }
+
     let finalImageUrl = imageUrl.trim();
 
     if (selectedFile && (!finalImageUrl || finalImageUrl.startsWith("blob:"))) {
@@ -238,18 +256,23 @@ export function AddMenuItemPanel({
       }
     }
 
+    // Éviter d'enregistrer un blob: local temporaire si l'upload n'a pas pu aboutir
+    if (finalImageUrl.startsWith("blob:")) {
+      finalImageUrl = "";
+    }
+
     // Formate la description en y intégrant les tags sélectionnés (Halal, Vegan...) et la taille officielle 1:1 en cm
     const finalDescription = formatDescriptionWithTags(description, selectedTags, sizeCm);
 
     // Mémorisation pour l'Apprentissage Continu de l'IA (Adaptive Learning)
-    if (restaurantId && name.trim()) {
+    if (restaurantId && trimmedName) {
       const catObj = categories.find((c) => c.id === categoryId);
       learnDishPattern(restaurantId, {
-        name: name.trim(),
+        name: trimmedName,
         categoryId,
         categoryName: catObj?.name,
         description: description.trim(),
-        price: parseFloat(price) || 0,
+        price: cleanPrice,
         tags: selectedTags,
         sizeCm,
         model3dUrl: model3dUrl.trim() || undefined,
@@ -258,11 +281,11 @@ export function AddMenuItemPanel({
 
     onSave({
       categoryId,
-      name: name.trim(),
+      name: trimmedName,
       description: finalDescription || undefined,
       imageUrl: finalImageUrl || undefined,
       model3dUrl: model3dUrl.trim() || undefined,
-      price: parseFloat(price) || 0,
+      price: cleanPrice,
       isAvailable,
       isFeatured,
     });
@@ -381,6 +404,23 @@ export function AddMenuItemPanel({
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Erreur Serveur ou Validation Locale */}
+          {(serverError || localError) && (
+            <div className="mx-6 mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center justify-between gap-2 shadow-xs">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{localError || serverError?.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLocalError(null)}
+                className="text-red-400 hover:text-red-600 text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Scrollable Form Body */}
           <div className="flex-1 overflow-y-auto px-6 py-5">
