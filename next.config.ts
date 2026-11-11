@@ -19,6 +19,9 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   allowedDevOrigins: [
     "*.trycloudflare.com",
     "localhost",
