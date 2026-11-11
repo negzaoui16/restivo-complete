@@ -81,7 +81,11 @@ export async function loadOrderableMenu(restaurantId: string): Promise<Orderable
         categoryId: category.id,
         sortOrder: row.sortOrder,
         promotions: promotionsByItem.get(row.id) ?? [],
-        model3dUrl: row.model3dUrl || null,
+        model3dUrl: row.model3dUrl
+          ? row.model3dUrl.startsWith("data:")
+            ? `/api/menu-items/${row.id}/3d`
+            : row.model3dUrl
+          : null,
       });
     }
   }

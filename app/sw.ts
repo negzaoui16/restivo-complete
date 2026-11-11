@@ -84,7 +84,8 @@ const serwist = new Serwist({
     {
       matcher: ({ url }: { url: URL }) =>
         url.pathname.endsWith(".glb") ||
-        url.pathname.startsWith("/models/"),
+        url.pathname.startsWith("/models/") ||
+        (url.pathname.startsWith("/api/menu-items/") && url.pathname.endsWith("/3d")),
       handler: new CacheFirst({
         cacheName: "restivo-3d-models",
         plugins: [

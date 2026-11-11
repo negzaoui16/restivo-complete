@@ -186,7 +186,11 @@ export async function getMenuTree(restaurantId: string): Promise<PublicMenu | nu
       name: item.name,
       description: item.description,
       imageUrl: item.imageUrl,
-      model3dUrl: (item as any).model3dUrl ?? null,
+      model3dUrl: (item as any).model3dUrl
+        ? (item as any).model3dUrl.startsWith("data:")
+          ? `/api/menu-items/${item.id}/3d`
+          : (item as any).model3dUrl
+        : null,
       price: formatPrice(String(item.price), currency),
       isAvailable: item.isAvailable,
       isFeatured: item.isFeatured,
