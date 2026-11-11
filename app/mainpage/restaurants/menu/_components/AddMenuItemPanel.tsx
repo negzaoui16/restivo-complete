@@ -93,6 +93,7 @@ export function AddMenuItemPanel({
   currency,
   restaurantId,
   saving,
+  serverError,
   onSave,
   onClose,
 }: {
