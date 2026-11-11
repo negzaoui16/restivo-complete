@@ -78,8 +78,15 @@ export async function applyFallbackModel({
     "fromage", "cheese", "4 fromage", "quatre fromage", "napolitaine", "sicilienne"
   ].some((kw) => text.includes(kw));
 
+  // 5. Frites & Sides
+  const isFries = [
+    "frite", "frites", "fries", "french fries", "potatoes", "pomme"
+  ].some((kw) => text.includes(kw));
+
   if (isDrink) {
     chosenModel = "drink.glb";
+  } else if (isFries) {
+    chosenModel = "fries.glb";
   } else if (isBurger) {
     chosenModel = "burger.glb";
   } else if (isSalad) {

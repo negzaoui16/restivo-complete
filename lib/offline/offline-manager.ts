@@ -37,6 +37,7 @@ export const LOCAL_3D_PRESETS = [
   { id: "burger", name: "Burger Gourmet", icon: "🍔", url: "/models/burger.glb" },
   { id: "salad", name: "Salade Fraîche", icon: "🥗", url: "/models/salad.glb" },
   { id: "drink", name: "Boisson Fraîche", icon: "🥤", url: "/models/drink.glb" },
+  { id: "fries", name: "Frites Dorées", icon: "🍟", url: "/models/fries.glb" },
   { id: "dish", name: "Plat du Chef", icon: "🍽️", url: "/models/sample-dish.glb" },
 ];
 
@@ -91,8 +92,26 @@ export function saveMenuToLocalCache(restaurantId: string, menu: PublicMenu | nu
   try {
     const key = `${MENU_CACHE_PREFIX}${restaurantId}`;
     const timeKey = `${MENU_CACHE_TIME_PREFIX}${restaurantId}`;
-    localStorage.setItem(key, JSON.stringify(menu));
-    localStorage.setItem(timeKey, new Date().toISOString());
+
+    try {
+      localStorage.setItem(key, JSON.stringify(menu));
+      localStorage.setItem(timeKey, new Date().toISOString());
+    } catch {
+      // En cas de QuotaExceededError (souvent causé par de gros Data URIs 3D) :
+      // On sauvegarde une version légère sans les gros Data URIs pour ne jamais bloquer le cache
+      const lightMenu: PublicMenu = {
+        ...menu,
+        categories: (menu.categories || []).map((cat) => ({
+          ...cat,
+          items: (cat.items || []).map((item) => ({
+            ...item,
+            model3dUrl: item.model3dUrl?.startsWith("data:") ? null : item.model3dUrl,
+          })),
+        })),
+      };
+      localStorage.setItem(key, JSON.stringify(lightMenu));
+      localStorage.setItem(timeKey, new Date().toISOString());
+    }
 
     // Pré-cacher tous les fichiers 3D (.glb) du menu en arrière-plan
     precacheAllMenu3DModels(menu);
@@ -140,7 +159,7 @@ export async function precacheAllMenu3DModels(menu: PublicMenu): Promise<void> {
     const imageUrls: string[] = [];
     for (const cat of menu.categories || []) {
       for (const item of cat.items || []) {
-        if (item.model3dUrl && item.model3dUrl.trim()) {
+        if (item.model3dUrl && item.model3dUrl.trim() && !item.model3dUrl.startsWith("data:")) {
           urlsToCache.push(item.model3dUrl.trim());
         }
         if (item.imageUrl && item.imageUrl.trim()) {
@@ -213,6 +232,31 @@ export async function getOrCache3DModelBlob(
   modelUrl: string
 ): Promise<{ blobUrl: string; isFromCache: boolean } | null> {
   if (typeof window === "undefined" || !modelUrl) return null;
+
+  // Si c'est déjà un Data URI Base64 (ex: généré par l'IA en environnement Serverless)
+  if (modelUrl.startsWith("data:")) {
+    try {
+      const parts = modelUrl.split(",");
+      const mime = parts[0].match(/:(.*?);/)?.[1] || "model/gltf-binary";
+      const bstr = atob(parts[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      return {
+        blobUrl: URL.createObjectURL(blob),
+        isFromCache: false,
+      };
+    } catch (e) {
+      console.warn("[OfflineManager] Failed to create blob from data URI:", e);
+      return {
+        blobUrl: modelUrl,
+        isFromCache: false,
+      };
+    }
+  }
 
   let fullUrl = modelUrl;
   if (fullUrl.startsWith("/")) {

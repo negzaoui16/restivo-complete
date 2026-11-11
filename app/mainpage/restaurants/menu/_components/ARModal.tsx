@@ -220,6 +220,7 @@ export function ARModal({
   }, []);
 
   useEffect(() => {
+    setLocalModelBlobUrl(null);
     if (!resolvedModelUrl) return;
     let isCancelled = false;
 
