@@ -24,14 +24,29 @@
 
 import { promises as fs } from "fs";
 
-export async function ensureGlbNormals(filePath: string): Promise<boolean> {
+export async function ensureGlbNormals(
+  input: string | Buffer
+): Promise<Buffer | boolean> {
   try {
-    // 1. Lecture du fichier binaire GLB
-    const fileBuf = await fs.readFile(filePath);
+    let fileBuf: Buffer;
+    let filePath: string | null = null;
+
+    if (typeof input === "string") {
+      filePath = input;
+      try {
+        fileBuf = await fs.readFile(filePath);
+      } catch {
+        return false;
+      }
+    } else if (Buffer.isBuffer(input)) {
+      fileBuf = input;
+    } else {
+      return false;
+    }
 
     // Vérifie le "Magic Number" GLB au début (0x46546c67 équivaut à la chaîne ASCII "glTF")
     const magic = fileBuf.readUInt32LE(0);
-    if (magic !== 0x46546c67) return false;
+    if (magic !== 0x46546c67) return filePath ? false : fileBuf;
 
     // 2. Décodage du Chunk 0 (JSON glTF)
     const chunk0Length = fileBuf.readUInt32LE(12);
@@ -175,7 +190,9 @@ export async function ensureGlbNormals(filePath: string): Promise<boolean> {
       }
     }
 
-    if (!modified) return false;
+    if (!modified) {
+      return filePath ? false : fileBuf;
+    }
 
     // 8. Réassemblage du fichier GLB binaire complet avec padding aligné sur 4 octets
     let newJsonStr = JSON.stringify(gltf);
@@ -206,11 +223,19 @@ export async function ensureGlbNormals(filePath: string): Promise<boolean> {
     outBuf.writeUInt32LE(0x004e4942, binOffset + 4); // "BIN\0"
     finalBin.copy(outBuf, binOffset + 8);
 
-    // Enregistre le fichier GLB optimisé sur le disque
-    await fs.writeFile(filePath, outBuf);
-    return true;
+    // Enregistre le fichier GLB optimisé sur le disque si un chemin est fourni
+    if (filePath) {
+      try {
+        await fs.writeFile(filePath, outBuf);
+      } catch {
+        console.log("[Normals] File write skipped in read-only environment.");
+      }
+      return true;
+    }
+
+    return outBuf;
   } catch (err) {
     console.warn("Failed to inject normals into GLB:", err);
-    return false;
+    return Buffer.isBuffer(input) ? input : false;
   }
 }

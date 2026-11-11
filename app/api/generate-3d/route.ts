@@ -51,8 +51,14 @@ export async function POST(req: NextRequest) {
     const uniqueId = crypto.randomUUID();
     const outputFilename = `item-3d-${uniqueId}.glb`;
     const modelsDir = path.join(process.cwd(), "public", "models");
-    await fs.mkdir(modelsDir, { recursive: true });
-    const destinationPath = path.join(modelsDir, outputFilename);
+    let canWriteModels = false;
+    try {
+      await fs.mkdir(modelsDir, { recursive: true });
+      canWriteModels = true;
+    } catch {
+      canWriteModels = false;
+    }
+    const destinationPath = canWriteModels ? path.join(modelsDir, outputFilename) : undefined;
 
     // ----------------------------------------------------
     // Étape 1 : Conversion de l'image en Blob binaire & sauvegarde permanente
@@ -69,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
     console.log(`[Route: generate-3d] extractImageBlob() succeeded! Blob size: ${imageBlob.size} bytes`);
 
-    // Sauvegarde automatique permanente de la photo dans /uploads/dishes
+    // Sauvegarde permanente de la photo dans /uploads/dishes (ou Data URI si read-only)
     let savedImageUrl: string | null = null;
     if (image && typeof image === "object" && "arrayBuffer" in image) {
       try {
@@ -82,19 +88,53 @@ export async function POST(req: NextRequest) {
         savedImageUrl = `/uploads/dishes/${imgFilename}`;
         console.log(`[Route: generate-3d] Saved 2D photo permanently to: ${savedImageUrl}`);
       } catch (e) {
-        console.error("[Route: generate-3d] Failed to save 2D photo:", e);
+        try {
+          const mimeType = (image as Blob).type || "image/jpeg";
+          const buf = Buffer.from(await (image as Blob).arrayBuffer());
+          savedImageUrl = `data:${mimeType};base64,${buf.toString("base64")}`;
+          console.log("[Route: generate-3d] Disk write failed. Stored 2D photo as Base64 data URI.");
+        } catch {
+          console.error("[Route: generate-3d] Failed to convert photo to Base64:", e);
+        }
       }
     }
 
-    let generated = false;
+    let model3dUrl: string | null = null;
 
     // ----------------------------------------------------
     // Étape 2 : Appel à l'IA Trellis pour générer le maillage 3D
     // ----------------------------------------------------
     console.log("[Route: generate-3d] [2/3] Calling generateWithTrellis()...");
     try {
-      generated = await generateWithTrellis(imageBlob, destinationPath);
-      console.log("[Route: generate-3d] generateWithTrellis() succeeded! Model written to disk.");
+      let glbBuffer = await generateWithTrellis(imageBlob, destinationPath);
+      if (glbBuffer && glbBuffer.length > 0) {
+        console.log(`[Route: generate-3d] generateWithTrellis() succeeded! GLB size: ${glbBuffer.length} bytes`);
+
+        // Post-traitement des normales en mémoire pour l'éclairage 3D
+        try {
+          const patched = await ensureGlbNormals(glbBuffer);
+          if (patched && Buffer.isBuffer(patched)) {
+            glbBuffer = patched;
+          }
+        } catch (normErr) {
+          console.warn("[Route: generate-3d] Warning during normals injection:", normErr);
+        }
+
+        // Tente de sauvegarder sur disque si possible, sinon Data URI Base64
+        if (canWriteModels && destinationPath) {
+          try {
+            await fs.writeFile(destinationPath, glbBuffer);
+            model3dUrl = `/models/${outputFilename}`;
+            console.log(`[Route: generate-3d] Model written to disk: ${model3dUrl}`);
+          } catch {
+            model3dUrl = `data:model/gltf-binary;base64,${glbBuffer.toString("base64")}`;
+            console.log("[Route: generate-3d] Disk write failed. Using Data URI for 3D model.");
+          }
+        } else {
+          model3dUrl = `data:model/gltf-binary;base64,${glbBuffer.toString("base64")}`;
+          console.log("[Route: generate-3d] Read-only environment. Serving 3D model as Data URI.");
+        }
+      }
     } catch (trellisError: any) {
       console.warn(
         `[Route: generate-3d] generateWithTrellis() failed: ${trellisError?.message || trellisError}`
@@ -104,33 +144,24 @@ export async function POST(req: NextRequest) {
     // ----------------------------------------------------
     // Étape 3 : Système de repli (Fallback) si l'IA distante échoue
     // ----------------------------------------------------
-    if (!generated) {
+    if (!model3dUrl) {
       console.log("[Route: generate-3d] [3/3] Calling applyFallbackModel()...");
       const fallbackResult = await applyFallbackModel({
         name,
         category,
-        modelsDir,
+        modelsDir: canWriteModels ? modelsDir : undefined,
         destinationPath,
       });
-      console.log(`[Route: generate-3d] applyFallbackModel() finished using: ${fallbackResult}`);
-      generated = true;
+      model3dUrl = fallbackResult.publicUrl;
+      console.log(`[Route: generate-3d] applyFallbackModel() finished using: ${fallbackResult.modelFile} -> ${model3dUrl}`);
     }
 
-    // ----------------------------------------------------
-    // Étape 4 : Post-traitement des normales pour l'éclairage 3D
-    // ----------------------------------------------------
-    if (generated) {
-      await ensureGlbNormals(destinationPath);
-    }
-
-    // URL publique relative que le frontend peut charger (/models/item-3d-....glb)
-    const publicUrl = `/models/${outputFilename}`;
-    console.log(`[Route: generate-3d] Request completed successfully. Public URL: ${publicUrl}`);
+    console.log(`[Route: generate-3d] Request completed successfully. Final URL prefix: ${model3dUrl.slice(0, 50)}...`);
     console.log("==================================================");
 
     return NextResponse.json({
       ok: true,
-      model3dUrl: publicUrl,
+      model3dUrl,
       savedImageUrl: savedImageUrl || imageUrl || undefined,
       message: "Modèle 3D généré avec succès !",
     });

@@ -23,50 +23,91 @@ import path from "path";
 export interface FallbackOptions {
   name: string;
   category: string;
-  modelsDir: string;
-  destinationPath: string;
+  modelsDir?: string;
+  destinationPath?: string;
+}
+
+export interface FallbackResult {
+  modelFile: string;
+  publicUrl: string;
 }
 
 /**
  * Sélectionne et applique un modèle 3D de secours contextuel
+ * Sans écriture obligatoire sur disque pour supporter les environnements
+ * Serverless / Vercel (read-only filesystem).
  */
 export async function applyFallbackModel({
   name,
   category,
   modelsDir,
   destinationPath,
-}: FallbackOptions): Promise<string> {
-  let chosenModel = "pizza-pepperoni.glb";
+}: FallbackOptions): Promise<FallbackResult> {
+  const text = `${name || ""} ${category || ""}`.toLowerCase();
 
-  // Détection contextuelle basée sur des mots-clés culinaires
-  const isPizza =
-    name.includes("pizza") ||
-    category.includes("pizza") ||
-    name.includes("saison") ||
-    name.includes("margherita") ||
-    name.includes("calzone") ||
-    name.includes("reine") ||
-    name.includes("4");
+  let chosenModel = "sample-dish.glb";
 
-  if (isPizza) {
+  // 1. Boissons / Drinks
+  const isDrink = [
+    "boisson", "drink", "jus", "juice", "soda", "cola", "coca", "pepsi", "fanta", "sprite",
+    "eau", "water", "cafe", "café", "coffee", "espresso", "latte", "cappuccino",
+    "the", "thé", "tea", "cocktail", "mojito", "smoothie", "canette", "bouteille",
+    "beer", "biere", "bière", "vin", "wine", "milkshake", "citronnade", "ice"
+  ].some((kw) => text.includes(kw));
+
+  // 2. Burgers, Sandwiches & Fast-food
+  const isBurger = [
+    "burger", "sandwich", "cheeseburger", "tacos", "taco", "panini", "wrap",
+    "bagel", "hotdog", "croque", "kebab", "shawarma", "chawarma", "mlawi", "makloub",
+    "chapati", "baguette"
+  ].some((kw) => text.includes(kw));
+
+  // 3. Salades & Healthy Bowls
+  const isSalad = [
+    "salade", "salad", "bowl", "poke", "caesar", "cesar", "legume", "légume",
+    "crudite", "crudité", "veggie", "vegan", "verte", "salata", "mechouia"
+  ].some((kw) => text.includes(kw));
+
+  // 4. Pizzas
+  const isPepperoni = [
+    "pepperoni", "peperoni", "chorizo", "salami", "spicy"
+  ].some((kw) => text.includes(kw));
+
+  const isPizza = [
+    "pizza", "calzone", "margherita", "margarita", "reine", "saison",
+    "fromage", "cheese", "4 fromage", "quatre fromage", "napolitaine", "sicilienne"
+  ].some((kw) => text.includes(kw));
+
+  if (isDrink) {
+    chosenModel = "drink.glb";
+  } else if (isBurger) {
+    chosenModel = "burger.glb";
+  } else if (isSalad) {
+    chosenModel = "salad.glb";
+  } else if (isPepperoni) {
     chosenModel = "pizza-pepperoni.glb";
-  } else {
+  } else if (isPizza) {
     chosenModel = "pizza.glb";
+  } else {
+    chosenModel = "sample-dish.glb";
   }
 
-  const fallbackSource = path.join(modelsDir, chosenModel);
-  console.log(`[Fallback] Selected contextual model: ${chosenModel}`);
+  const publicUrl = `/models/${chosenModel}`;
+  console.log(`[Fallback] Selected contextual model: ${chosenModel} -> Public URL: ${publicUrl}`);
 
-  try {
-    // Copie le fichier 3D préexistant vers le chemin unique généré
-    await fs.copyFile(fallbackSource, destinationPath);
-    console.log(`[Fallback] Successfully copied ${chosenModel} to destination.`);
-    return chosenModel;
-  } catch (err) {
-    console.warn(`[Fallback] Primary fallback failed, falling back to default pizza.glb...`);
-    const defaultSource = path.join(modelsDir, "pizza.glb");
-    await fs.copyFile(defaultSource, destinationPath);
-    console.log(`[Fallback] Successfully copied default pizza.glb to destination.`);
-    return "pizza.glb";
+  // Tentative optionnelle de copie sur disque si l'environnement le permet (ex: dev local)
+  if (destinationPath && modelsDir) {
+    try {
+      const fallbackSource = path.join(modelsDir, chosenModel);
+      await fs.copyFile(fallbackSource, destinationPath);
+      console.log(`[Fallback] Successfully copied ${chosenModel} to ${destinationPath}`);
+    } catch {
+      console.log(`[Fallback] Serverless/Read-only environment detected. Direct static serving used: ${publicUrl}`);
+    }
   }
+
+  return {
+    modelFile: chosenModel,
+    publicUrl,
+  };
 }

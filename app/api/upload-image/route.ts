@@ -31,14 +31,21 @@ export async function POST(req: NextRequest) {
 
     const uniqueId = crypto.randomUUID();
     const filename = `dish-${uniqueId}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "dishes");
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, filename);
-    await fs.writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/dishes/${filename}`;
-    console.log(`[Upload-Image] Saved image permanently to: ${publicUrl}`);
+    
+    let publicUrl: string | null = null;
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads", "dishes");
+      await fs.mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, filename);
+      await fs.writeFile(filePath, buffer);
+      publicUrl = `/uploads/dishes/${filename}`;
+      console.log(`[Upload-Image] Saved image permanently to: ${publicUrl}`);
+    } catch {
+      // Environnement read-only (Vercel Serverless) -> Base64 data URI
+      const mime = file.type || "image/jpeg";
+      publicUrl = `data:${mime};base64,${buffer.toString("base64")}`;
+      console.log("[Upload-Image] Read-only filesystem detected. Serving image as Data URI.");
+    }
 
     return NextResponse.json({
       ok: true,

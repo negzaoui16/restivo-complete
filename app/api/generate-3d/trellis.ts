@@ -36,9 +36,9 @@ function getHfTokenPool(): string[] {
  */
 async function executeTrellisPipeline(
   imageBlob: Blob,
-  destinationPath: string,
+  destinationPath: string | undefined,
   token: string
-): Promise<boolean> {
+): Promise<Buffer> {
   const authHeaders: Record<string, string> = token
     ? { Authorization: `Bearer ${token}` }
     : {};
@@ -159,17 +159,25 @@ async function executeTrellisPipeline(
     throw new Error("TRELLIS generation completed but no .glb file URL found.");
   }
 
-  // 5. Téléchargement du GLB et sauvegarde sur disque local
-  console.log("[TRELLIS] Downloading GLB to local public/models...");
+  // 5. Téléchargement du GLB
+  console.log("[TRELLIS] Downloading GLB from Hugging Face Space...");
   const fileRes = await fetch(fileUrl, { headers: authHeaders });
   if (!fileRes.ok) {
     throw new Error(`Failed to download GLB file (HTTP ${fileRes.status})`);
   }
   const arrayBuf = await fileRes.arrayBuffer();
-  await fs.writeFile(destinationPath, Buffer.from(arrayBuf));
-  console.log("[TRELLIS] Saved GLB successfully to:", destinationPath);
+  const glbBuffer = Buffer.from(arrayBuf);
 
-  return true;
+  if (destinationPath) {
+    try {
+      await fs.writeFile(destinationPath, glbBuffer);
+      console.log("[TRELLIS] Saved GLB successfully to:", destinationPath);
+    } catch {
+      console.log("[TRELLIS] Serverless / read-only filesystem: disk write skipped, retaining in-memory buffer.");
+    }
+  }
+
+  return glbBuffer;
 }
 
 /**
@@ -177,8 +185,8 @@ async function executeTrellisPipeline(
  */
 export async function generateWithTrellis(
   imageBlob: Blob,
-  destinationPath: string
-): Promise<boolean> {
+  destinationPath?: string
+): Promise<Buffer> {
   const tokenPool = getHfTokenPool();
   const tokensToTry = tokenPool.length > 0 ? tokenPool : [""];
 
@@ -195,10 +203,10 @@ export async function generateWithTrellis(
     );
 
     try {
-      const ok = await executeTrellisPipeline(imageBlob, destinationPath, currentToken);
-      if (ok) {
-        console.log(`[TRELLIS] ✅ Génération réussie avec le token [${i + 1}/${tokensToTry.length}] !`);
-        return true;
+      const buffer = await executeTrellisPipeline(imageBlob, destinationPath, currentToken);
+      if (buffer && buffer.length > 0) {
+        console.log(`[TRELLIS] ✅ Génération réussie avec le token [${i + 1}/${tokensToTry.length}] ! Buffer: ${buffer.length} octets`);
+        return buffer;
       }
     } catch (err: any) {
       console.warn(
