@@ -43,7 +43,6 @@ export async function POST(request: Request, context: RouteContext): Promise<Res
     });
   } catch (err: unknown) {
     console.error("[AiGenerateFloorRoute] Error:", err);
-    const message = err instanceof Error ? err.message : "Failed to generate floor plan with AI.";
-    return toRestaurantErrorResponse(new Error(message));
+    return toRestaurantErrorResponse(err);
   }
 }

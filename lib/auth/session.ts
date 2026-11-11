@@ -10,17 +10,23 @@ import { getRefreshTokenCookie } from "./cookies";
 
 export async function requireUserId(request: Request): Promise<string> {
   const authHeader = request.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw new AuthError("MISSING_TOKEN");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      try {
+        const payload = await verifyAccessToken(token);
+        if (payload.sub) return payload.sub;
+      } catch {
+        // Bearer token expired or invalid; fall through to refresh cookie check
+      }
+    }
   }
 
-  const token = authHeader.slice(7).trim();
-  if (!token) throw new AuthError("MISSING_TOKEN");
+  // Graceful fallback to verified httpOnly session cookie
+  const cookieUserId = await getUserIdFromRefreshCookie();
+  if (cookieUserId) return cookieUserId;
 
-  const payload = await verifyAccessToken(token);
-  if (!payload.sub) throw new AuthError("INVALID_TOKEN");
-
-  return payload.sub;
+  throw new AuthError("MISSING_TOKEN");
 }
 
 /** Resolves the signed-in user from the httpOnly refresh cookie (RSC / layouts). */

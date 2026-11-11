@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { FloorObject } from "./floor-object";
 import type { FloorPlanSummary } from "@/lib/ai/floor-plan/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AiFloorGeneratorModalProps {
   restaurantId: string;
@@ -39,6 +40,7 @@ export function AiFloorGeneratorModal({
   onApply,
   onClose,
 }: AiFloorGeneratorModalProps) {
+  const { getAccessToken } = useAuth();
   const [step, setStep] = useState<Step>("guide");
 
   // Photos state (data URLs)
@@ -165,6 +167,11 @@ export function AiFloorGeneratorModal({
 
   // Run AI Generation
   const handleGenerate = async () => {
+    if (!restaurantId) {
+      setErrorMessage("No active restaurant selected. Please ensure you are viewing a valid venue.");
+      return;
+    }
+
     if (!frontPhoto || !backPhoto) {
       setErrorMessage("Both Front and Back photos are required to reconstruct the floor plan.");
       return;
@@ -183,9 +190,14 @@ export function AiFloorGeneratorModal({
     }, 6000);
 
     try {
+      const token = getAccessToken();
       const res = await fetch(`/api/restaurants/${restaurantId}/floors/ai-generate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
         body: JSON.stringify({
           frontImage: frontPhoto,
           backImage: backPhoto,
