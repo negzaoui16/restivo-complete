@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthInput } from "../_components/AuthInput";
-import { SocialAuthButtons } from "../_components/SocialAuthButtons";
 import { AuthSideBanner } from "../_components/AuthSideBanner";
 import { useAuth, ApiError } from "@/contexts/AuthContext";
 
@@ -194,8 +193,6 @@ export default function SignInPage() {
               </button>
             </form>
 
-            {/* Divider & Social SSO */}
-            <SocialAuthButtons />
 
             {/* Switch to Sign Up */}
             <div className="mt-6 text-center text-xs sm:text-[13px] text-zinc-600">

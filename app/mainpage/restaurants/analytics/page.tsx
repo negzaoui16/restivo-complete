@@ -137,7 +137,7 @@ export default function AnalyticsDashboardPage() {
     }
   }, [currentRestaurant?.id]);
 
-  // Fetch real data from PostgreSQL or fallback to Offline Cache
+  // Fetch real data from Database or fallback to Offline Cache
   const fetchRealAnalytics = useCallback(async (restId: string) => {
     // 1. Stale-While-Revalidate : Affichage INSTANTANÉ (0ms) depuis le cache local !
     const cached = loadAnalyticsCache(restId);

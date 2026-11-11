@@ -12,6 +12,8 @@ export type Workplace = {
 type StaffChrome = {
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
+  sidebarVisible: boolean;
+  toggleSidebar: () => void;
   section: StaffSectionId;
   setSection: (section: StaffSectionId) => void;
   search: string;
@@ -25,6 +27,8 @@ const StaffChromeContext = createContext<StaffChrome | null>(null);
 
 export function StaffChromeProvider({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const toggleSidebar = useCallback(() => setSidebarVisible((v) => !v), []);
   const [section, setSection] = useState<StaffSectionId>("overview");
   const [search, setSearch] = useState("");
   const [workplace, setWorkplaceState] = useState<Workplace | null>(null);
@@ -38,6 +42,8 @@ export function StaffChromeProvider({ children }: { children: React.ReactNode })
     () => ({
       mobileOpen,
       setMobileOpen,
+      sidebarVisible,
+      toggleSidebar,
       section,
       setSection,
       search,

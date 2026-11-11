@@ -12,8 +12,6 @@ import {
   Users2,
   Sparkles,
   BarChart3,
-  Star,
-  Settings,
   HelpCircle,
   LogOut,
   ChevronDown,
@@ -22,6 +20,7 @@ import {
   Store,
   X,
   ArrowRight,
+  PanelLeftClose,
 } from "lucide-react";
 import { useRestaurantManager } from "../_context/RestaurantManagerContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,8 +37,6 @@ const NAV_ITEMS = [
   { id: "staff", label: "Staff", icon: Users2, href: `${RESTAURANTS_ROOT}/staff` },
   { id: "ai", label: "AI Manager", icon: Sparkles, href: `${RESTAURANTS_ROOT}/ai` },
   { id: "analytics", label: "Analytics", icon: BarChart3, href: `${RESTAURANTS_ROOT}/analytics` },
-  { id: "reviews", label: "Reviews", icon: Star },
-  { id: "settings", label: "Settings", icon: Settings },
 ] as const;
 
 function isNavActive(
@@ -65,6 +62,8 @@ export function RestaurantSidebar() {
     setActiveNavTab,
     mobileMenuOpen,
     setMobileMenuOpen,
+    sidebarVisible,
+    toggleSidebar,
   } = useRestaurantManager();
 
   const pathname = usePathname();
@@ -82,10 +81,10 @@ export function RestaurantSidebar() {
   };
 
   const sidebarContent = (
-    <div className="h-full flex flex-col justify-between py-5 px-3 sm:px-4 bg-[#FAF7F2] select-none text-[#1A1A1A]">
+    <div className="h-full flex flex-col justify-between py-5 px-3 sm:px-4 bg-[#FAF7F2] select-none text-[#1A1A1A] overflow-y-auto overflow-x-hidden">
       {/* Top Part */}
       <div className="flex flex-col gap-4">
-        {/* Brand & Mobile Close */}
+        {/* Brand & Mobile Close / Desktop Collapse */}
         <div className="flex items-center justify-between px-2 pt-1 pb-2">
           <Link
             href="/mainpage"
@@ -104,13 +103,24 @@ export function RestaurantSidebar() {
             </div>
           </Link>
 
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="lg:hidden p-1.5 rounded-lg text-[#6B6661] hover:text-[#1A1A1A] hover:bg-black/5"
-            aria-label="Close menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="hidden lg:flex p-1.5 rounded-lg text-[#6B6661] hover:text-[#1A1A1A] hover:bg-black/5 transition-colors cursor-pointer"
+              aria-label="Collapse sidebar"
+              title="Slide / collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg text-[#6B6661] hover:text-[#1A1A1A] hover:bg-black/5"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Restaurant Switcher & Profile Card */}
@@ -359,9 +369,17 @@ export function RestaurantSidebar() {
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-[215px] xl:w-[235px] shrink-0 flex-col border-r border-[#ECE7DC] bg-[#FAF7F2] select-none h-full">
-        {sidebarContent}
+      {/* Desktop Sidebar (Slidable / Collapsible) */}
+      <aside
+        className={`hidden lg:flex shrink-0 flex-col border-r border-[#ECE7DC] bg-[#FAF7F2] select-none h-full transition-all duration-300 ease-in-out ${
+          sidebarVisible
+            ? "w-[215px] xl:w-[235px] opacity-100 translate-x-0"
+            : "w-0 -translate-x-full opacity-0 pointer-events-none border-r-0 overflow-hidden"
+        }`}
+      >
+        <div className="w-[215px] xl:w-[235px] h-full shrink-0">
+          {sidebarContent}
+        </div>
       </aside>
 
       {/* Mobile / Tablet Drawer */}

@@ -32,6 +32,13 @@
       "status": "ACTIVE",
       "updatedAt": "2026-10-10T03:21:08.276Z",
       "_id": "01M4HX89DKDRR1TGE09X2Y4VB0"
+    },
+    {
+      "email": "sayariemin@gmail.com",
+      "passwordHash": "$2b$12$Wp4N1QOC5GNtedPpfSB4RusqAlH.4da0BLhAYgy9LO9.aM73ZGTbm",
+      "managementRole": "STAFF",
+      "id": "7938b811-077d-4852-ac0c-55003d905ad7",
+      "_id": "7938b811-077d-4852-ac0c-55003d905ad7"
     }
   ],
   "Profile": [
@@ -73,6 +80,15 @@
       "updatedAt": "2026-10-10T03:21:08.280Z",
       "userId": "01M4HX89DKDRR1TGE09X2Y4VB0",
       "_id": "01M4HX89DR97JJ7ZEAJWJYPD6N"
+    },
+    {
+      "userId": "7938b811-077d-4852-ac0c-55003d905ad7",
+      "firstName": "sayari",
+      "lastName": "amin",
+      "displayName": "sayari amin",
+      "phone": "+21620728814",
+      "id": "e67a82ea-f81a-4424-a32b-3173d2333a54",
+      "_id": "e67a82ea-f81a-4424-a32b-3173d2333a54"
     }
   ],
   "Restaurant": [
@@ -181,9 +197,30 @@
       "joinedAt": "2026-11-10T05:07:09.476Z",
       "id": "606f6542-0076-4fb6-8198-04111f834762",
       "_id": "606f6542-0076-4fb6-8198-04111f834762"
+    },
+    {
+      "userId": "7938b811-077d-4852-ac0c-55003d905ad7",
+      "restaurantId": "01M4CJBW3NX4P4NMEBW0E63WXN",
+      "role": "STAFF",
+      "status": "ACTIVE",
+      "joinedAt": "2026-11-11T18:47:48.032Z",
+      "id": "c1feaa9c-fc73-44ef-a4b3-3d9e2b910217",
+      "_id": "c1feaa9c-fc73-44ef-a4b3-3d9e2b910217"
     }
   ],
-  "RestaurantMembershipRequest": [],
+  "RestaurantMembershipRequest": [
+    {
+      "userId": "7938b811-077d-4852-ac0c-55003d905ad7",
+      "restaurantId": "01M4CJBW3NX4P4NMEBW0E63WXN",
+      "status": "ACCEPTED",
+      "message": "rani nikhdem maak",
+      "id": "d946ebd7-bc0d-4cea-a015-032e8030958a",
+      "_id": "d946ebd7-bc0d-4cea-a015-032e8030958a",
+      "reviewedById": "01M4CJ4KYB2J7J5V845H1BN2D6",
+      "reviewedAt": "2026-11-11T18:47:48.032Z",
+      "updatedAt": "2026-11-11T18:47:48.039Z"
+    }
+  ],
   "BusinessHours": [
     {
       "closeTime": null,
@@ -31246,6 +31283,31 @@
       "metadata": null,
       "id": "be9165a0-d3d4-4c33-8ee3-96165a7c8a09",
       "_id": "be9165a0-d3d4-4c33-8ee3-96165a7c8a09"
+    },
+    {
+      "userId": "7938b811-077d-4852-ac0c-55003d905ad7",
+      "restaurantId": "01M4CJBW3NX4P4NMEBW0E63WXN",
+      "action": "CREATE",
+      "entityType": "RestaurantMembershipRequest",
+      "entityId": "d946ebd7-bc0d-4cea-a015-032e8030958a",
+      "metadata": {
+        "status": "PENDING"
+      },
+      "id": "a6c0f83f-d5c4-494d-b5b1-2c6c3dff8295",
+      "_id": "a6c0f83f-d5c4-494d-b5b1-2c6c3dff8295"
+    },
+    {
+      "userId": "01M4CJ4KYB2J7J5V845H1BN2D6",
+      "restaurantId": "01M4CJBW3NX4P4NMEBW0E63WXN",
+      "action": "ACCEPT",
+      "entityType": "RestaurantMembershipRequest",
+      "entityId": "d946ebd7-bc0d-4cea-a015-032e8030958a",
+      "metadata": {
+        "applicantId": "7938b811-077d-4852-ac0c-55003d905ad7",
+        "membershipId": "c1feaa9c-fc73-44ef-a4b3-3d9e2b910217"
+      },
+      "id": "6c10c1af-6aba-45b4-bcd0-f94d0ffc3a9e",
+      "_id": "6c10c1af-6aba-45b4-bcd0-f94d0ffc3a9e"
     }
   ]
 }

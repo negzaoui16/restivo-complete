@@ -8,6 +8,8 @@ import { OrdersBoard } from "./OrdersBoard";
 import { Overview } from "./Overview";
 import { StaffSection } from "./StaffSection";
 import { TodayReservations } from "./TodayReservations";
+import { StaffTablesView } from "./StaffTablesView";
+import { StaffMenuView } from "./StaffMenuView";
 
 export function StaffWorkspace({
   greeting,
@@ -21,7 +23,7 @@ export function StaffWorkspace({
   const { section, search } = useStaffChrome();
   const board = useServiceBoard(restaurantId);
 
-  if (section === "tables" || section === "menu" || section === "notifications") {
+  if (section === "notifications") {
     return <StaffSection section={section} />;
   }
 
@@ -75,6 +77,33 @@ export function StaffWorkspace({
       <>
         {banner}
         <TodayReservations rows={rows} timezone={timezone} busyId={board.busyId} onMove={board.moveReservation} />
+      </>
+    );
+  }
+
+  if (section === "tables") {
+    return (
+      <>
+        {banner}
+        <StaffTablesView
+          restaurantId={restaurantId}
+          reservations={board.reservations?.reservations ?? []}
+          search={search}
+          busyId={board.busyId}
+          onMoveReservation={board.moveReservation}
+        />
+      </>
+    );
+  }
+
+  if (section === "menu") {
+    return (
+      <>
+        {banner}
+        <StaffMenuView
+          restaurantId={restaurantId}
+          search={search}
+        />
       </>
     );
   }

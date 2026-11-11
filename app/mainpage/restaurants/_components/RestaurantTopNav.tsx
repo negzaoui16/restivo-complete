@@ -28,6 +28,7 @@ export function RestaurantTopNav() {
     setSearchQuery,
     setIsAddRestaurantOpen,
     openRestaurantProfile,
+    toggleSidebar,
   } = useRestaurantManager();
   const { user, signOut } = useAuth();
   const pathname = usePathname();
@@ -55,9 +56,17 @@ export function RestaurantTopNav() {
       {/* Left Breadcrumb & Mobile Menu Toggle */}
       <div className="flex items-center gap-2.5">
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 rounded-xl text-[#4A4643] hover:text-[#1A1A1A] hover:bg-black/5"
+          type="button"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+              toggleSidebar();
+            } else {
+              setMobileMenuOpen(!mobileMenuOpen);
+            }
+          }}
+          className="p-2 rounded-xl text-[#4A4643] hover:text-[#1A1A1A] hover:bg-black/5 transition-colors cursor-pointer"
           aria-label="Toggle navigation menu"
+          title="Glisser / Afficher le menu latéral"
         >
           <Menu className="w-5 h-5" />
         </button>

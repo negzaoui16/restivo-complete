@@ -76,7 +76,7 @@ export function OverviewTab({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-[#1A1A1A]">
-                Base PostgreSQL Connectée & Régression Linéaire Multiple Active
+                Régression Linéaire Multiple Active
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#15803d]/15 text-[#15803d] border border-[#15803d]/30">
                 100% Local
@@ -192,12 +192,12 @@ export function OverviewTab({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-[#1A1A1A]">
-                Recettes Réelles de la Base (7 derniers jours)
+                Recettes Réelles (7 derniers jours)
               </h2>
               <p className="text-xs text-[#736D65]">Historique synchronisé avec les commandes réelles</p>
             </div>
             <span className="px-2.5 py-1 rounded-lg bg-[#FAF0EA] text-[#B55234] text-xs font-bold">
-              Base PostgreSQL
+              Commandes Réelles
             </span>
           </div>
 

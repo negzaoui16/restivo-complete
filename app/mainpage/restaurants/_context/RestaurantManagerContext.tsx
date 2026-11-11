@@ -98,6 +98,9 @@ interface RestaurantManagerContextType {
   openRestaurantProfile: (rest?: ManagedRestaurant | null) => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
+  sidebarVisible: boolean;
+  setSidebarVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleSidebar: () => void;
   activeNavTab: string;
   setActiveNavTab: (tab: string) => void;
   searchQuery: string;
@@ -126,6 +129,9 @@ const EMPTY: RestaurantManagerContextType = {
   openRestaurantProfile: () => {},
   mobileMenuOpen: false,
   setMobileMenuOpen: () => {},
+  sidebarVisible: true,
+  setSidebarVisible: () => {},
+  toggleSidebar: () => {},
   activeNavTab: "overview",
   setActiveNavTab: () => {},
   searchQuery: "",
@@ -146,6 +152,10 @@ export function RestaurantManagerProvider({ children }: { children: React.ReactN
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileModalRestaurant, setProfileModalRestaurant] = useState<ManagedRestaurant | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const toggleSidebar = useCallback(() => {
+    setSidebarVisible((prev) => !prev);
+  }, []);
   const [activeNavTab, setActiveNavTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantStatus, setRestaurantStatus] = useState<"Open" | "Closed" | "Break">("Open");
@@ -250,6 +260,9 @@ export function RestaurantManagerProvider({ children }: { children: React.ReactN
         openRestaurantProfile,
         mobileMenuOpen,
         setMobileMenuOpen,
+        sidebarVisible,
+        setSidebarVisible,
+        toggleSidebar,
         activeNavTab,
         setActiveNavTab,
         searchQuery,

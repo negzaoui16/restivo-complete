@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Armchair,
-  Bell,
   CalendarDays,
   HelpCircle,
   LayoutDashboard,
@@ -26,17 +25,24 @@ const NAV = [
   { id: "tables", label: "Tables", icon: Armchair },
   { id: "orders", label: "Orders", icon: ShoppingBag },
   { id: "menu", label: "Menu", icon: UtensilsCrossed },
-  { id: "notifications", label: "Notifications", icon: Bell },
-] as const satisfies ReadonlyArray<{ id: StaffSectionId; label: string; icon: typeof Bell }>;
+] as const satisfies ReadonlyArray<{ id: StaffSectionId; label: string; icon: typeof LayoutDashboard }>;
 
 export function StaffSidebar() {
-  const { mobileOpen, setMobileOpen, section, setSection } = useStaffChrome();
+  const { mobileOpen, setMobileOpen, section, setSection, sidebarVisible } = useStaffChrome();
   const content = <SidebarBody section={section} onSelect={setSection} onClose={() => setMobileOpen(false)} />;
 
   return (
     <>
-      <aside className="hidden h-full w-[215px] shrink-0 flex-col border-r border-[#ECE7DC] bg-[#FAF7F2] select-none lg:flex xl:w-[235px]">
-        {content}
+      <aside
+        className={`hidden h-full shrink-0 flex-col border-r border-[#ECE7DC] bg-[#FAF7F2] select-none lg:flex transition-all duration-300 ease-in-out ${
+          sidebarVisible
+            ? "w-[215px] xl:w-[235px] opacity-100 translate-x-0"
+            : "w-0 -translate-x-full opacity-0 pointer-events-none border-r-0 overflow-hidden"
+        }`}
+      >
+        <div className="w-[215px] xl:w-[235px] h-full shrink-0">
+          {content}
+        </div>
       </aside>
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">

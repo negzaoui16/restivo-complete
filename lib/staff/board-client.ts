@@ -37,3 +37,9 @@ export const apiStaffSetReservation = (token: string, restaurantId: string, id: 
 
 export const apiStaffSetOrder = (token: string, restaurantId: string, id: string, status: StaffOrderTarget) =>
   call<{ ok: true }>(token, `${base(restaurantId)}/orders/${id}/status`, "PATCH", { status });
+
+export const apiStaffFloors = (token: string, restaurantId: string) =>
+  call<{ ok: true; floors: any[] }>(token, `${base(restaurantId)}/floors`, "GET");
+
+export const apiStaffMenu = (token: string, restaurantId: string) =>
+  call<{ ok: true; menu: any }>(token, `${base(restaurantId)}/menu`, "GET");

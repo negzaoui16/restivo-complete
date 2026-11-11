@@ -61,9 +61,6 @@ export function MLPredictorCard({
                   <CheckCircle2 className="w-3 h-3" />
                   100% Local · Zéro API externe
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-[#E8E2D7]">
-                  Base PostgreSQL Connectée
-                </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight mt-2 text-white">
                 Modèle de Régression Linéaire Multiple (Demand Forecasting)

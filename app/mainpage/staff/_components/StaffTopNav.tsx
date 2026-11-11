@@ -17,7 +17,7 @@ const SECTION_LABEL = {
 
 export function StaffTopNav() {
   const { user } = useAuth();
-  const { setMobileOpen, section, setSection, search, setSearch, workplace } = useStaffChrome();
+  const { setMobileOpen, section, setSection, search, setSearch, workplace, toggleSidebar } = useStaffChrome();
   const name = user?.firstName || user?.displayName || "Staff";
   const placeName = workplace?.name ?? "Find a restaurant";
 
@@ -26,9 +26,16 @@ export function StaffTopNav() {
       <div className="flex min-w-0 items-center gap-2.5">
         <button
           type="button"
-          onClick={() => setMobileOpen(true)}
-          className="rounded-xl p-2 text-[#4A4643] hover:bg-black/5 lg:hidden"
-          aria-label="Open navigation menu"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+              toggleSidebar();
+            } else {
+              setMobileOpen(true);
+            }
+          }}
+          className="rounded-xl p-2 text-[#4A4643] hover:bg-black/5 cursor-pointer transition-colors"
+          aria-label="Toggle navigation menu"
+          title="Glisser / Afficher le menu latéral"
         >
           <Menu className="h-5 w-5" />
         </button>
