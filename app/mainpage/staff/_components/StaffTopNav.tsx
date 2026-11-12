@@ -5,6 +5,7 @@ import { Bell, ChevronDown, Menu, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileInitials } from "../../_lib/profile";
 import { useStaffChrome } from "../_context/staff-chrome";
+import { TourHelpButton } from "@/components/TourGuide";
 
 const SECTION_LABEL = {
   overview: "Staff Workspace",
@@ -62,6 +63,7 @@ export function StaffTopNav() {
             className="w-44 rounded-full border border-[#E8E4DA] bg-white/70 py-1.5 pr-3 pl-8 text-xs focus:border-[#B55234] focus:bg-white focus:outline-none md:w-56"
           />
         </label>
+        <TourHelpButton />
         {workplace ? (
           <button
             type="button"

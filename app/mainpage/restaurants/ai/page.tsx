@@ -49,7 +49,7 @@ export default function AiManagerPage() {
     user.displayName || [user.firstName, user.lastName].filter(Boolean).join(" ") || "Owner";
 
   return (
-    <div className="h-full min-h-0 py-4">
+    <div data-tour="manager-page-ai" className="h-full min-h-0 py-4">
       <ManagerChat
         key={currentRestaurant.id}
         restaurantId={currentRestaurant.id}

@@ -67,7 +67,7 @@ export function AnalyticsTabs({
   ];
 
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-b border-[#E8E2D7] no-scrollbar">
+    <div data-tour="manager-analytics-tabs" className="flex items-center gap-1.5 overflow-x-auto py-1 border-b border-[#E8E2D7] no-scrollbar">
       {tabs.map((t) => {
         const Icon = t.icon;
         const isActive = activeTab === t.id;

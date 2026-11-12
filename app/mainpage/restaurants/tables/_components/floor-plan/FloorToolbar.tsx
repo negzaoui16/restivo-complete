@@ -10,7 +10,7 @@ export function FloorToolbar() {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#E5DFD3] bg-white px-2 py-1.5">
       {/* 2D / 3D Mode Toggle */}
-      <div className="inline-flex items-center rounded-lg border border-[#E5DFD3] bg-[#F5F2EB] p-0.5">
+      <div data-tour="manager-tables-3d" className="inline-flex items-center rounded-lg border border-[#E5DFD3] bg-[#F5F2EB] p-0.5">
         <button
           type="button"
           onClick={() => editor.setViewMode("2d")}
@@ -60,6 +60,7 @@ export function FloorToolbar() {
         type="button"
         disabled={editor.preview}
         onClick={() => editor.setPerimeterModalOpen(true)}
+        data-tour="manager-tables-walls"
         className="flex items-center gap-1.5 rounded-lg border border-[#E5DFD3] bg-[#FAF7F2] px-2.5 py-1.5 text-[13px] font-semibold text-[#1A1A1A] hover:border-[#B55234] hover:bg-[#FAF0EA] hover:text-[#B55234] transition disabled:opacity-40"
       >
         <Building2 className="h-4 w-4 text-[#B55234]" />
@@ -71,6 +72,7 @@ export function FloorToolbar() {
         type="button"
         disabled={editor.preview}
         onClick={() => editor.setAiModalOpen(true)}
+        data-tour="manager-tables-ai"
         className="flex items-center gap-1.5 rounded-lg border border-[#B55234]/40 bg-gradient-to-r from-[#FAF0EA] to-[#FDF5F0] px-2.5 py-1.5 text-[13px] font-bold text-[#B55234] hover:border-[#B55234] hover:shadow-xs hover:bg-[#FAF0EA] transition disabled:opacity-40"
         title="Generate 2D floor plan from front & back photos using Gemini Vision"
       >

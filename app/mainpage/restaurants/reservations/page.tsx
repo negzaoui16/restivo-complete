@@ -57,7 +57,7 @@ function ReservationsAndOrders() {
   }
 
   return (
-    <div className="flex flex-col gap-5 py-1">
+    <div data-tour="manager-page-reservations" className="flex flex-col gap-5 py-1">
       <section>
         <h1 className="text-2xl font-extrabold tracking-tight text-[#1A1A1A] sm:text-3xl">Reservations &amp; orders</h1>
         <p className="mt-1 text-xs text-[#736D65] sm:text-sm">

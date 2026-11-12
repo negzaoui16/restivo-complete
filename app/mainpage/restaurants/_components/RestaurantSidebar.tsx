@@ -107,6 +107,7 @@ export function RestaurantSidebar() {
             <button
               type="button"
               onClick={toggleSidebar}
+              data-tour="manager-sidebar-toggle"
               className="hidden lg:flex p-1.5 rounded-lg text-[#6B6661] hover:text-[#1A1A1A] hover:bg-black/5 transition-colors cursor-pointer"
               aria-label="Collapse sidebar"
               title="Slide / collapse sidebar"
@@ -321,6 +322,7 @@ export function RestaurantSidebar() {
                     setMobileMenuOpen(false);
                   }}
                   className={className}
+                  data-tour={`manager-nav-${item.id}`}
                 >
                   {content}
                 </Link>

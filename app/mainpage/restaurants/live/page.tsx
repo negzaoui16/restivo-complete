@@ -45,7 +45,7 @@ export default function LiveFloorPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 py-1">
+    <div data-tour="manager-page-live" className="flex flex-col gap-5 py-1">
       <section>
         <h1 className="text-2xl font-extrabold tracking-tight text-[#1A1A1A] sm:text-3xl">Live floor</h1>
         <p className="mt-1 text-xs text-[#736D65] sm:text-sm">

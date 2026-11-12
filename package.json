@@ -11,6 +11,8 @@
     "lint": "eslint",
     "test": "node --experimental-strip-types --test lib/ai/tools/registry.test.ts lib/ai/tools/reservations/tools.test.ts lib/ai/follow-ups.test.ts lib/auth/token-expiry.test.ts lib/restaurants/publish.test.ts lib/discover/search.test.ts lib/reservations/rules.test.ts lib/orders/pricing.test.ts lib/menu-book/paginate.test.ts lib/orders/price-input.test.ts lib/menu/reorder.test.ts lib/reservations/transitions.test.ts lib/orders/transitions.test.ts lib/reservations/stats.test.ts lib/restaurants/hours.test.ts lib/floors/active.test.ts lib/staff/roles.test.ts lib/restaurants/price-level.test.ts lib/live/state.test.ts lib/live/alerts.test.ts lib/staff/service-rules.test.ts lib/reservations/service.integration.test.ts lib/manager/manager.integration.test.ts lib/restaurants/restaurant.integration.test.ts lib/staff/board.integration.test.ts lib/live/live.integration.test.ts",
     "test:integration": "node --env-file=.env --experimental-strip-types --test lib/reservations/service.integration.test.ts lib/manager/manager.integration.test.ts lib/restaurants/restaurant.integration.test.ts lib/staff/board.integration.test.ts lib/live/live.integration.test.ts",
+    "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts",
+    "seed:full": "node --experimental-strip-types scripts/seed-full.ts",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {

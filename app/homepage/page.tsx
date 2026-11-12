@@ -6,6 +6,11 @@ import { PersonaCards } from "./_components/PersonaCards";
 import { BannerSection } from "./_components/BannerSection";
 import { TestimonialsSection } from "./_components/TestimonialsSection";
 import { Footer } from "./_components/Footer";
+import { LandingTour } from "@/components/LandingTour";
+import { isDemoEnabled } from "@/lib/auth/demo";
+
+// DEMO_MODE est lu à chaque requête (pas figé au build).
+export const dynamic = "force-dynamic";
 
 export default function Homepage() {
   return (
@@ -23,7 +28,7 @@ export default function Homepage() {
         {/* Soft radial overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/60 via-transparent to-[#FAF7F2]/80 pointer-events-none" />
 
-        <Navbar />
+        <Navbar demoEnabled={isDemoEnabled()} />
         <HeroSection />
         <FeatureIconsRow />
         <PlatformSection />
@@ -33,6 +38,7 @@ export default function Homepage() {
       <BannerSection />
       <TestimonialsSection />
       <Footer />
+      <LandingTour />
     </div>
   );
 }

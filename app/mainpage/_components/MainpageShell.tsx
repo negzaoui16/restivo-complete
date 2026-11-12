@@ -18,6 +18,7 @@ import { RestaurantProfileModal } from "../restaurants/_components/RestaurantPro
 import { StaffSidebar } from "../staff/_components/StaffSidebar";
 import { StaffTopNav } from "../staff/_components/StaffTopNav";
 import { StaffChromeProvider } from "../staff/_context/staff-chrome";
+import { TourGuide } from "@/components/TourGuide";
 
 export function MainpageShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -52,6 +53,7 @@ export function MainpageShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </div>
+      <TourGuide />
       {isRestaurantRoute && (
         <>
           <AddRestaurantModal />

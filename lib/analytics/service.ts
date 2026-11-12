@@ -273,6 +273,10 @@ export function generateFallbackAnalytics(restaurantId: string): RealAnalyticsDa
  * trains on real database records.
  */
 export async function ensureRestaurantOrdersSeeded(restaurantId: string): Promise<boolean> {
+  // Restaurant de la démo automatique (scripts/seed-demo.ts, ids "01DM...") : ses vraies données
+  // suffisent. Sans ce garde-fou, ce générateur y ajoute de faux plats et ~800 fausses commandes.
+  if (restaurantId.startsWith("01DM")) return false;
+
   const existingOrders = await db.orm.public.Order.where({ restaurantId }).all();
   if (existingOrders.length >= 15) {
     return false; // Already has real data

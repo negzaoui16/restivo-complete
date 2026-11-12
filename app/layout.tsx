@@ -36,9 +36,11 @@ export default function RootLayout({
     <html lang="en" className={`${plusJakarta.variable} ${playfair.variable} font-sans h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans bg-[#FAF7F2] text-[#1A1A1A]">
         {/* Enregistrement du Service Worker PWA pour l'installation native */}
-        <script
+        <Script
+          id="sw-register"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}`,
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){})}`,
           }}
         />
         <AuthProvider>{children}</AuthProvider>

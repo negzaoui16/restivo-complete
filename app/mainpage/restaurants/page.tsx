@@ -258,7 +258,7 @@ export default function RestaurantDashboardPage() {
       </section>
 
       {/* ─── Statistic cards: real numbers for the chosen day ─── */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-live="polite">
+      <section data-tour="manager-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-live="polite">
         {stats.error && !stats.data ? (
           <p role="alert" className="sm:col-span-2 lg:col-span-4 rounded-xl border border-[#F3DFD4] bg-[#FAF0EA] px-4 py-3 text-sm text-[#B55234]">
             {stats.error}{" "}
@@ -308,30 +308,36 @@ export default function RestaurantDashboardPage() {
           <FloorPlanView onOpenFullModal={() => setFloorPlanModalOpen(true)} />
 
           {/* Recent Activity Cards (4 in a row) */}
-          <RecentActivityWidget
-            restaurantId={currentRestaurant.id}
-            timezone={timezone}
-            onViewAll={() => router.push("/mainpage/restaurants/reservations")}
-          />
+          <div data-tour="manager-overview-activity">
+            <RecentActivityWidget
+              restaurantId={currentRestaurant.id}
+              timezone={timezone}
+              onViewAll={() => router.push("/mainpage/restaurants/reservations")}
+            />
+          </div>
         </div>
 
         {/* Right Column (Approx 35-40%): Reservations, Live Orders, Enhance Banner */}
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-5">
           {/* Today's Reservations Table */}
-          <ReservationsWidget
-            restaurantId={currentRestaurant.id}
-            date={date}
-            title={`${dayName(dayOffset)}'s reservations`}
-            onAddReservation={() => setReservationModalOpen(true)}
-            onViewAll={() => router.push("/mainpage/restaurants/reservations")}
-          />
+          <div data-tour="manager-overview-reservations">
+            <ReservationsWidget
+              restaurantId={currentRestaurant.id}
+              date={date}
+              title={`${dayName(dayOffset)}'s reservations`}
+              onAddReservation={() => setReservationModalOpen(true)}
+              onViewAll={() => router.push("/mainpage/restaurants/reservations")}
+            />
+          </div>
 
           {/* Live Orders List */}
-          <LiveOrdersWidget
-            restaurantId={currentRestaurant.id}
-            onViewAll={() => router.push("/mainpage/restaurants/reservations?tab=orders")}
-            onSelectOrder={() => router.push("/mainpage/restaurants/reservations?tab=orders")}
-          />
+          <div data-tour="manager-overview-orders">
+            <LiveOrdersWidget
+              restaurantId={currentRestaurant.id}
+              onViewAll={() => router.push("/mainpage/restaurants/reservations?tab=orders")}
+              onSelectOrder={() => router.push("/mainpage/restaurants/reservations?tab=orders")}
+            />
+          </div>
 
           {/* Enhance Your Restaurant Promo Banner */}
           <EnhancePromoCard

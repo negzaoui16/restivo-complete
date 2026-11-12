@@ -101,6 +101,7 @@ function SidebarBody({
               <button
                 key={item.id}
                 type="button"
+                data-tour={`staff-nav-${item.id}`}
                 onClick={() => {
                   onSelect(item.id);
                   onClose();

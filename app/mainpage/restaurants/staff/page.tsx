@@ -57,7 +57,7 @@ export default function RestaurantStaffPage() {
   );
 
   return (
-    <div className="flex flex-col gap-5 py-1">
+    <div data-tour="manager-page-staff" className="flex flex-col gap-5 py-1">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-[#1A1A1A] sm:text-3xl">Staff</h1>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { NAV_LINKS } from "../_data";
+import { DemoStartButton } from "@/components/TourGuide";
 
 // ─── Arrow Icon ──────────────────────────────────────────────────────────────
 
@@ -25,9 +26,10 @@ function ArrowRight({ className }: { className?: string }) {
 
 interface MobileDrawerProps {
   onClose: () => void;
+  demoEnabled: boolean;
 }
 
-function MobileDrawer({ onClose }: MobileDrawerProps) {
+function MobileDrawer({ onClose, demoEnabled }: MobileDrawerProps) {
   return (
     <div className="lg:hidden mt-4 pt-4 pb-6 px-4 bg-white/95 backdrop-blur-md rounded-2xl border border-black/5 shadow-xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-200">
       {NAV_LINKS.map(({ label, href }) => (
@@ -41,6 +43,11 @@ function MobileDrawer({ onClose }: MobileDrawerProps) {
         </Link>
       ))}
       <div className="pt-3 border-t border-zinc-100 flex flex-col gap-3">
+        {demoEnabled ? (
+          <DemoStartButton
+            className="text-center py-2 text-sm font-medium text-[#B55234] disabled:opacity-60"
+          />
+        ) : null}
         <Link
           href="/auth/signin"
           onClick={onClose}
@@ -62,7 +69,7 @@ function MobileDrawer({ onClose }: MobileDrawerProps) {
 
 // ─── Navbar ──────────────────────────────────────────────────────────────────
 
-export function Navbar() {
+export function Navbar({ demoEnabled = false }: { demoEnabled?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const toggle = () => setMobileMenuOpen((v) => !v);
 
@@ -95,6 +102,9 @@ export function Navbar() {
 
         {/* Right: Auth & Primary CTA (desktop) */}
         <div className="hidden sm:flex items-center gap-6">
+          {demoEnabled ? (
+            <DemoStartButton className="text-[14.5px] font-medium text-[#B55234] hover:text-[#9E4328] transition-colors disabled:opacity-60" />
+          ) : null}
           <Link
             href="/auth/signin"
             className="text-[14.5px] font-medium text-[#4A4643] hover:text-[#1A1A1A] transition-colors"
@@ -141,7 +151,7 @@ export function Navbar() {
         </div>
       </div>
 
-      {mobileMenuOpen && <MobileDrawer onClose={() => setMobileMenuOpen(false)} />}
+      {mobileMenuOpen && <MobileDrawer onClose={() => setMobileMenuOpen(false)} demoEnabled={demoEnabled} />}
     </header>
   );
 }

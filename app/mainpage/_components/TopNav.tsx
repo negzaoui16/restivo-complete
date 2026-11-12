@@ -8,6 +8,7 @@ import { useMainpage } from "./MainpageProvider";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileInitials } from "../_lib/profile";
+import { TourHelpButton } from "@/components/TourGuide";
 
 export function TopNav() {
   const { searchQuery, setSearchQuery, openMobileMenu } = useMainpage();
@@ -32,7 +33,7 @@ export function TopNav() {
         </button>
 
         {/* Top search bar pill */}
-        <div className="relative flex-1">
+        <div className="relative flex-1" data-tour="client-search">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9E988F]" />
           <input
             type="text"
@@ -46,7 +47,10 @@ export function TopNav() {
 
       {/* Right controls: Location + Bell + Profile */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <NotificationBell />
+        <span data-tour="client-bell" className="inline-flex">
+          <NotificationBell />
+        </span>
+        <TourHelpButton />
 
         {/* User Profile Pill */}
         <Link

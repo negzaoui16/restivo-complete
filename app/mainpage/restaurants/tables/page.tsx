@@ -56,7 +56,7 @@ export default function TablesAndFloorsPage() {
   const floor = floorsApi.activeFloor;
 
   return (
-    <div className="flex select-none flex-col gap-0 pb-6 animate-in fade-in duration-300">
+    <div data-tour="manager-page-tables" className="flex select-none flex-col gap-0 pb-6 animate-in fade-in duration-300">
       <TablesHeader />
       <FloorBar
         floors={floorsApi.floors}

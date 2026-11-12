@@ -108,6 +108,17 @@ export async function apiSignIn(input: SignInInput): Promise<AuthResult> {
   return handleResponse<AuthResult>(res);
 }
 
+export type DemoRole = "client" | "manager" | "staff";
+
+/** Connexion d'un compte démo (404 si DEMO_MODE n'est pas actif côté serveur). */
+export async function apiDemoSignIn(role: DemoRole): Promise<AuthResult> {
+  const res = await fetch(`/api/demo/login?role=${role}`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return handleResponse<AuthResult>(res);
+}
+
 /** Sign out – clears the httpOnly refresh cookie on the server. */
 export async function apiSignOut(): Promise<void> {
   await fetch("/api/auth/signout", {

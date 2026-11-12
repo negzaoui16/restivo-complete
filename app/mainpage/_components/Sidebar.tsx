@@ -56,12 +56,14 @@ function navLinkClass(isActive: boolean): string {
 }
 
 function NavLink({
+  id,
   href,
   label,
   icon: Icon,
   active,
   onNavigate,
 }: {
+  id: string;
   href: string;
   label: string;
   icon: typeof Home;
@@ -69,7 +71,7 @@ function NavLink({
   onNavigate: () => void;
 }) {
   return (
-    <Link href={href} onClick={onNavigate} className={navLinkClass(active)}>
+    <Link href={href} onClick={onNavigate} className={navLinkClass(active)} data-tour={`client-nav-${id}`}>
       <Icon
         className={`w-4 h-4 transition-colors ${active ? "text-[#B55234]" : "text-[#7B756E]"}`}
         strokeWidth={active ? 2.2 : 1.9}
@@ -118,6 +120,7 @@ export function Sidebar() {
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.id}
+              id={item.id}
               href={item.href}
               label={item.label}
               icon={item.icon}
@@ -131,6 +134,7 @@ export function Sidebar() {
               {visibleRoles.map((item) => (
                 <NavLink
                   key={item.id}
+                  id={item.id}
                   href={item.href}
                   label={item.label}
                   icon={item.icon}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FLOORS } from "../_data";
+import { openLandingTour } from "@/components/LandingTour";
 
 // ─── Floating Widget: Floor Selector ─────────────────────────────────────────
 
@@ -190,7 +191,7 @@ export function HeroSection() {
 
             <button
               type="button"
-              onClick={() => alert("Exploring Restivo platform interactive preview")}
+              onClick={openLandingTour}
               className="inline-flex items-center gap-2.5 text-[#B55234] hover:text-[#9E4328] font-semibold text-[15px] transition-colors py-2 px-1 group cursor-pointer"
             >
               <span>Explore Restivo</span>

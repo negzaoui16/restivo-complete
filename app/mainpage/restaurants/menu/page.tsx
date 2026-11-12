@@ -312,7 +312,7 @@ export default function MenuPage() {
   const preview = previewOpen ? previewBookMenu(menu) : null;
 
   return (
-    <div className="flex flex-col gap-0 select-none animate-in fade-in duration-300">
+    <div data-tour="manager-page-menu" className="flex flex-col gap-0 select-none animate-in fade-in duration-300">
       {usingOfflineCache && (
         <div className="mb-3 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">

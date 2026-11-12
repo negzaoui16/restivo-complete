@@ -24,6 +24,7 @@ import React, {
 } from "react";
 import {
   ApiError,
+  apiDemoSignIn,
   apiMe,
   apiRefresh,
   apiSignIn,
@@ -33,6 +34,7 @@ import {
   hasSessionHint,
   type AuthUser,
   type AuthUserFull,
+  type DemoRole,
   type SignInInput,
   type SignUpInput,
   type SignUpRole,
@@ -55,6 +57,8 @@ interface AuthContextValue {
   /** True after the initial restore has completed (either way). */
   isReady: boolean;
   signIn: (input: SignInInput) => Promise<void>;
+  /** Démo : connecte un compte démo sans mot de passe (serveur en DEMO_MODE). */
+  signInDemo: (role: DemoRole) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<{ role: SignUpRole }>;
   signOut: () => Promise<void>;
   updateProfile: (input: UpdateProfileInput) => Promise<AuthUserFull>;
@@ -210,6 +214,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(result.user);
   }, [applyToken]);
 
+  const signInDemo = useCallback(async (role: DemoRole): Promise<void> => {
+    const result = await apiDemoSignIn(role); // throws ApiError (404 if demo is off)
+    applyToken(result.accessToken);
+    setUser(result.user);
+  }, [applyToken]);
+
   // ── Sign up ───────────────────────────────────────────────────────────────
 
   const signUp = useCallback(
@@ -272,6 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isReady,
         signIn,
+        signInDemo,
         signUp,
         signOut,
         updateProfile,

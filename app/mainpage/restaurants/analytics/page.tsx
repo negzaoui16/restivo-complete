@@ -458,7 +458,7 @@ export default function AnalyticsDashboardPage() {
   const currentPredictions = realData?.mlPredictions || [];
 
   return (
-    <div className="flex flex-col gap-6 py-1 select-none animate-in fade-in duration-300">
+    <div data-tour="manager-page-analytics" className="flex flex-col gap-6 py-1 select-none animate-in fade-in duration-300">
       {/* ─── Offline Status & Sync Alert Banner ─── */}
       {!isOnline && (
         <div className="p-3.5 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in slide-in-from-top-2">
