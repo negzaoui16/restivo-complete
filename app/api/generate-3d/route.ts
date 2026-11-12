@@ -1,15 +1,14 @@
 /**
  * ============================================================================
- * API ROUTE : Génération de Modèles 3D par IA (/api/generate-3d)
+ * ROUTE API : GÉNÉRATION DE MODÈLES 3D PAR IA (/api/generate-3d)
  * ============================================================================
- * Rôle : Transforme une photo 2D d'un plat (pizza, burger, salade, etc.)
- *        en un modèle 3D interactif au format standard .GLB.
+ * Fichier : app/api/generate-3d/route.ts
  *
- * Pipeline en 4 étapes :
- * 1. Extraction et normalisation de l'image (fichier binaire ou URL).
- * 2. Appel au modèle de Deep Learning TRELLIS (HuggingFace / Gradio).
- * 3. Fallback intelligent si l'API IA est indisponible (modèle de repli réaliste).
- * 4. Recalcul des normales géométriques pour un éclairage photoréaliste.
+ * RÔLE CLÉ :
+ * Reçoit une photo 2D de plat envoyée depuis le panneau 'AddMenuItemPanel',
+ * orchestre l'appel au modèle de Deep Learning Trellis AI, injecte des normales
+ * géométriques Three.js pour un éclairage réaliste, et gère automatiquement
+ * l'environnement Serverless en lecture seule de Vercel.
  * ============================================================================
  */
 
@@ -22,7 +21,10 @@ import { generateWithTrellis } from "./trellis";
 import { applyFallbackModel } from "./fallback";
 import { ensureGlbNormals } from "./normals";
 
+// Forcer le rendu dynamique pour traiter chaque nouvelle photo individuellement
 export const dynamic = "force-dynamic";
+
+// Configuration du timeout maximum de Vercel à 60 secondes pour laisser le temps à l'IA
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
@@ -30,12 +32,12 @@ export async function POST(req: NextRequest) {
     console.log("==================================================");
     console.log("[Route: generate-3d] Received new 3D generation request");
 
-    // 1. Récupération des données du formulaire envoyé par AddMenuItemPanel
+    // 1. Extraction des données multipart/form-data envoyées par le client
     const formData = await req.formData();
-    const image = formData.get("image");
-    const imageUrl = formData.get("imageUrl") as string | null;
+    const image = formData.get("image"); // Fichier photo uploadé
+    const imageUrl = formData.get("imageUrl") as string | null; // Ou URL d'image web alternative
 
-    // Validation : Vérifie qu'au moins une photo ou une URL d'image est fournie
+    // 2. Validation d'entrée : s'assure qu'une photo ou une URL est présente
     if (!image && !imageUrl) {
       console.warn("[Route: generate-3d] Validation failed: No image or imageUrl provided.");
       return NextResponse.json(
@@ -44,26 +46,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Métadonnées du plat (utilisées pour le fallback si besoin)
+    // 3. Extraction du nom et de la catégorie du plat (utiles pour cibler le modèle de fallback)
     const name = ((formData.get("name") as string | null) || "").toLowerCase();
     const category = ((formData.get("category") as string | null) || "").toLowerCase();
 
-    // Génération d'un nom de fichier unique pour le modèle 3D
+    // 4. Génération d'un UUID unique pour nommer le fichier 3D
     const uniqueId = crypto.randomUUID();
     const outputFilename = `item-3d-${uniqueId}.glb`;
     const modelsDir = path.join(process.cwd(), "public", "models");
+    
+    // 5. Test d'écriture disque pour détecter si nous sommes en local (Node) ou sur Vercel (Serverless read-only)
     let canWriteModels = false;
     try {
       await fs.mkdir(modelsDir, { recursive: true });
       canWriteModels = true;
     } catch {
-      canWriteModels = false;
+      canWriteModels = false; // Environnement Vercel : disque en lecture seule
     }
     const destinationPath = canWriteModels ? path.join(modelsDir, outputFilename) : undefined;
 
-    // ----------------------------------------------------
-    // Étape 1 : Conversion de l'image en Blob binaire & sauvegarde permanente
-    // ----------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ÉTAPE 1 : Normalisation de la photo 2D en Blob binaire & sauvegarde
+    // ------------------------------------------------------------------------
     console.log("[Route: generate-3d] [1/3] Calling extractImageBlob()...");
     const imageBlob = await extractImageBlob(image, imageUrl);
 
@@ -76,7 +80,7 @@ export async function POST(req: NextRequest) {
     }
     console.log(`[Route: generate-3d] extractImageBlob() succeeded! Blob size: ${imageBlob.size} bytes`);
 
-    // Sauvegarde permanente de la photo dans /uploads/dishes (ou Data URI si read-only)
+    // Sauvegarde de l'image 2D sur disque en local ou en Data URI Base64 sur Vercel
     let savedImageUrl: string | null = null;
     if (image && typeof image === "object" && "arrayBuffer" in image) {
       try {
@@ -102,16 +106,16 @@ export async function POST(req: NextRequest) {
 
     let model3dUrl: string | null = null;
 
-    // ----------------------------------------------------
-    // Étape 2 : Appel à l'IA Trellis pour générer le maillage 3D
-    // ----------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ÉTAPE 2 : Appel à l'intelligence artificielle Trellis (HuggingFace / Gradio)
+    // ------------------------------------------------------------------------
     console.log("[Route: generate-3d] [2/3] Calling generateWithTrellis()...");
     try {
       let glbBuffer = await generateWithTrellis(imageBlob, destinationPath);
       if (glbBuffer && glbBuffer.length > 0) {
         console.log(`[Route: generate-3d] generateWithTrellis() succeeded! GLB size: ${glbBuffer.length} bytes`);
 
-        // Post-traitement des normales en mémoire pour l'éclairage 3D
+        // Post-traitement géométrique : injection des normales Three.js pour un éclairage 3D lissé
         try {
           const patched = await ensureGlbNormals(glbBuffer);
           if (patched && Buffer.isBuffer(patched)) {
@@ -121,7 +125,7 @@ export async function POST(req: NextRequest) {
           console.warn("[Route: generate-3d] Warning during normals injection:", normErr);
         }
 
-        // Tente de sauvegarder sur disque si possible, sinon Data URI Base64
+        // Sauvegarde sur disque si possible (local), sinon encodage Data URI pour persistance MongoDB
         if (canWriteModels && destinationPath) {
           try {
             await fs.writeFile(destinationPath, glbBuffer);
@@ -142,9 +146,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ----------------------------------------------------
-    // Étape 3 : Système de repli (Fallback) si l'IA distante échoue
-    // ----------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ÉTAPE 3 : Système de repli intelligent (Fallback) en cas de panne de l'IA
+    // ------------------------------------------------------------------------
     if (!model3dUrl) {
       console.log("[Route: generate-3d] [3/3] Calling applyFallbackModel()...");
       const fallbackResult = await applyFallbackModel({
@@ -160,6 +164,9 @@ export async function POST(req: NextRequest) {
     console.log(`[Route: generate-3d] Request completed successfully. Final URL prefix: ${model3dUrl.slice(0, 50)}...`);
     console.log("==================================================");
 
+    // ------------------------------------------------------------------------
+    // ÉTAPE 4 : Renvoie de la réponse JSON avec l'URL ou Data URI du modèle 3D
+    // ------------------------------------------------------------------------
     return NextResponse.json({
       ok: true,
       model3dUrl,
